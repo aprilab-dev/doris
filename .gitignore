@@ -1,3 +1,12 @@
+# compiled files for c and python
 src/*.o
 **/*.pyc
+
+# virtual environments
 .virtualenvs
+
+# configuration files
+.vscode
+
+# fftw
+fftw*
