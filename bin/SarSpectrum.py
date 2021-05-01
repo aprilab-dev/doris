@@ -123,8 +123,9 @@ class SarSpectrum:
         plt.colorbar()
         plt.show()
 
-    def quicklook(self, outfile='quicklook.png'):
-        img.imsave(outfile, np.absolute(self.sar_array)/self.norm,
+    def quicklook(self, outfile: str = 'quicklook.png', decimate: int = 1):
+        quicklook = self.sar_array[::decimate, ::decimate]  # type: ignore
+        img.imsave(outfile, np.abs(quicklook) * decimate / self.norm,
                    vmin=0, vmax=3)
 
     def spectrum(self, direction='2d'):
