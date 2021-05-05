@@ -1,6 +1,8 @@
+from _typeshed import NoneType
 import os
 import fnmatch
 import xml.etree.ElementTree as ET
+
 
 class GF3:
     """GF3 is used to read GaoFen-3 (GF3) meta data and to make it compatible
@@ -11,8 +13,7 @@ class GF3:
     """
 
     def __init__(self):
-        """[summary]
-        """        
+        """[summary]"""
         self.meta = {}  # meta file, empty dictionary
 
     def locate_meta(self, directory: str):
@@ -23,114 +24,78 @@ class GF3:
         directory : str
             [description]
         """
-        pattern = "GF3*L1A*.meta.xml"        
-        self.meta['path'] = locate(pattern, directory)
+        pattern = "GF3*L1A*.meta.xml"
+        self.meta["path"] = locate(pattern, directory)
 
     def read_meta(self):
-        """[summary]
-        """        
-        
-        # e = xml.etree.ElementTree.parse('thefile.xml').getroot()
-        # for atype in e.findall('type'):
-        #     print(atype.get('foobar'))
-        inTree = etree.parse(inputFileName)
+        """[summary]"""
 
         # query syntax for every field
         queryList = {
-                    # mission info
-                    'mission'             : 'sourceAttributes/satellite',
-                    # imageFile file
-                    # fullResolutionImageData pole="HH" # inTree.findall('imageAttributes/fullResolutionImageData')[0].text, and more [1] .. [3]
-                    'imageFile'           : 'imageAttributes/fullResolutionImageData',
-                    #'imageLines'          : 'imageAttributes/rasterAttributes/numberOfLines',
-                    'imageLines'          : 'imageAttributes//numberOfLines',
-                    'imagePixels'         : 'imageAttributes//numberOfSamplesPerLine',
-                    'imageLineSpacing'    : 'imageAttributes//sampledLineSpacing',
-                    'imagePixelSpacing'   : 'imageAttributes//sampledPixelSpacing',
-                    # volume info
-                    #'volFile' : 'productComponents/annotation/file/location/filename', # HARDCODED!!! for radarsat-2
-                    # following smt like Level 1B Product, check manual
-                    'volID'               : 'productId',
-                    'volRef'              : 'documentIdentifier',
-                    # product info
-                    #productSpec'          : 'generalHeader/referenceDocument',  # TSX
-                    'productSpec'         : 'documentIdentifier',
-                    'productVolDate'      : 'imageGenerationParameters//processingTime',
-                    'productSoftVer'      : 'imageGenerationParameters//softwareVersion',
-                    'productDate'         : 'sourceAttributes/rawDataStartTime',
-                    'productFacility'     : 'imageGenerationParameters//processingFacility',
-                    # scene info
-                    #'scenePol'           : 'sourceAttributes/radarParameters/acquisitionType',    # Fine Quad Polarization
-                    'scenePol'            : 'sourceAttributes//polarizations',
-                    'sceneBeam'           : 'sourceAttributes//beams',
-                    'sceneBeamMode'       : 'sourceAttributes/beamModeMnemonic',
-                    'list_sceneLat'       : 'imageAttributes/geographicInformation/geolocationGrid/imageTiePoint/geodeticCoordinate/latitude',
-                    'list_sceneLon'       : 'imageAttributes/geographicInformation/geolocationGrid/imageTiePoint/geodeticCoordinate/longitude',
-                    'sceneRecords'        : 'imageGenerationParameters/sarProcessingInformation/numberOfLinesProcessed',
-                    'antennaLookDir'      : 'sourceAttributes//antennaPointing',
-                    'missinglines'        : 'sourceAttributes//numberOfMissingLines',
-                    # orbit info
-                    'orbitABS'            : 'sourceAttributes/orbitAndAttitude//orbitDataFile',
-                    'orbitDir'            : 'sourceAttributes//passDirection',
-                    'list_orbitTime'      : 'sourceAttributes//stateVector/timeStamp',
-                    'list_orbitX'         : 'sourceAttributes//stateVector/xPosition',
-                    'list_orbitY'         : 'sourceAttributes//stateVector/yPosition',
-                    'list_orbitZ'         : 'sourceAttributes//stateVector/zPosition',
-                    'list_orbitXV'        : 'sourceAttributes//stateVector/xVelocity',
-                    'list_orbitYV'        : 'sourceAttributes//stateVector/yVelocity',
-                    'list_orbitZV'        : 'sourceAttributes//stateVector/zVelocity',
-                    # range
-                    'list_rangeRSR'       : 'sourceAttributes//adcSamplingRate', # for UF mode there are two subpulses which have to be added together
-                    'rangeBW'             : 'imageGenerationParameters//rangeLookBandwidth',
-                    'rangeWind'           : 'imageGenerationParameters//rangeWindow/windowName',
-                    'rangeWindCoeff'      : 'imageGenerationParameters//rangeWindow/windowCoefficient',
-                    'rangeTimePix'        : 'imageGenerationParameters//slantRangeTimeToFirstRangeSample',
-                    # azimuth
-                    'azimuthPRF'          : 'sourceAttributes//pulseRepetitionFrequency', # for some modes (MF, UF) this value is changed in processing, calculate from other values
-                    'azimuthBW'           : 'imageGenerationParameters//azimuthLookBandwidth',
-                    'azimuthWind'         : 'imageGenerationParameters//azimuthWindow/windowName',
-                    'azimuthWindCoeff'    : 'imageGenerationParameters//azimuthWindow/windowCoefficient',
-                    'azimuthTimeFirstLine': 'imageGenerationParameters//zeroDopplerTimeFirstLine',
-                    'azimuthTimeLastLine' : 'imageGenerationParameters//zeroDopplerTimeLastLine',
-                    # doppler
-                    'dopplerTime'         : 'imageGenerationParameters//timeOfDopplerCentroidEstimate',
-                    'dopplerCoeff'        : 'imageGenerationParameters//dopplerCentroidCoefficients',
-                    # for wavelength computation
-                    'radarfreq'           : 'sourceAttributes//radarCenterFrequency',
-                    #  wavelength_computed = (0.000000001*SOL/atof(c8freq)) seems more reliable, BK 03/04
-                    }
+            # volume info
+            "Volume file": self.meta["path"],
+            "Volume_ID": "productinfo//productType",
+            "Volume_identifier": "DocumentIdentifier",
+            "Volume_set_identifier": None,
+            # mission info
+            "(Check)Number of records in ref. file": "imageAttributes//numberOfLines",
+            "SAR_PROCESSOR": "Station",
+            "Product type specifier": "sourceAttributes/satellite",
+            "Logical volume generating facility": "Station",
+            "Logical volume creation date": "productinfo//productGentime",
+            "Location and date/time of product creation": "productinfo//productGentime",
+            "Orbit": "orbitID",  # Scene identification
+            "Direction": "Direction",  # Scene identification
+            "Mode": "sensor//imagingMode",  # Scene identification
+            "Leader file": self.meta["path"],
+            "Sensor platform mission identifer": "sourceAttributes/satellite",
+            "Scene_centre_latitude": "imageinfo//center//latitude",  # Scene location
+            "Scene_centre_longitude": "imageinfo//center//longitude",  # Scene location
+            # product info
+            "Radar_wavelength (m)": "sensor//lamda",
+            "First_pixel_azimuth_time (UTC)": "imageinfo//imagingTime//start",
+            "Pulse_Repetition_Frequency (computed, Hz)": "imageinfo//eqvPRF",
+            "Total_azimuth_band_width (Hz)": "processinfo//TotalProcessedAzimuthBandWidth",
+            "Weighting_azimuth": "processinfo//AzimuthWeightType",
+            "Xtrack_f_DC_constant (Hz, early edge)": "processinfo//DopplerCentroidCoefficients//d0",
+            "Xtrack_f_DC_linear (Hz/s, early edge)": "processinfo//DopplerCentroidCoefficients//d1",
+            "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": "processinfo//DopplerCentroidCoefficients//d2",
+            "Range_time_to_first_pixel (2way) (ms)": "imageinfo//nearRange",
+            "Range_sampling_rate (computed, MHz)": "imageinfo//eqvPRF",
+            "Total_range_band_width (MHz)": "processinfo//RangeLookBandWidth",
+            "Weighting_range": "processinfo//RangeWeightType"
+        }
 
+        inTree = ET.parse(self.meta["path"])
 
         # get variables and parameters from xml
         container = {}
-        for key, value in queryList.iteritems():
-            if key.startswith('list_'):
-                container[key] = [tag.text for tag in inTree.findall(nsmap_none(value, ns))]
+        for key, value in queryList.iteritems():  # ignore:type
+            if key.startswith("list_"):
+                container[key] = [
+                    tag.text for tag in inTree.findall(nsmap_none(value, ns))
+                ]
             else:
                 container[key] = inTree.findtext(nsmap_none(value, ns))
                 if container[key] == None:
-                    raise Exception('Path {0} not found in XML'.format(value))
+                    raise Exception("Path {0} not found in XML".format(value))
 
-        container['dopplerCoeff'] = container['dopplerCoeff'].split()        
+        container["dopplerCoeff"] = container["dopplerCoeff"].split()
 
-
-        
         pass
 
-    def export2res():
-        """[summary]
-        """        
+    def export2res(self) -> None:
+        """[summary]"""
         pass
 
-    def usage():
-        """[summary]
-        """        
+    def usage(self) -> None:
+        """[summary]"""
         pass
 
 
-def locate(pattern:str, root=os.curdir) -> str:
+def locate(pattern: str, root=os.curdir) -> str:
     # region docstring
-    """Locate the **first** file matching supplied filename pattern 
+    """Locate the **first** file matching supplied filename pattern
     in and below supplied root directory.
 
     Parameters
@@ -149,17 +114,17 @@ def locate(pattern:str, root=os.curdir) -> str:
     Notes
     -----
     You can use either "return" or "yield", but be aware of the diference
-    between the two. 
-    """ 
+    between the two.
+    """
     # endregion
 
-    # TODO: consider using os.getcwd()? 
+    # TODO: consider using os.getcwd()?
     # see https://stackmirror.com/questions/14512087
     for path, dirs, files in os.walk(os.path.abspath(root), followlinks=True):
         for filename in fnmatch.filter(files, pattern):
             return os.path.join(path, filename)
     raise FileNotFoundError
 
+
 if __name__ == "__main__":
     pass
-
