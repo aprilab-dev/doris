@@ -1492,6 +1492,8 @@ void readinput(
         m_readfilesinput.sensor_id=SLC_ALOS;
       else if (!strcmp(keyword,"ALOS2"))             // alos2 [YQ]
         m_readfilesinput.sensor_id=SLC_ALOS2;
+      else if (!strcmp(keyword,"GF3"))               // gf3 [YQ]
+        m_readfilesinput.sensor_id=SLC_GF3;
       else if (!strcmp(keyword,"TSX"))               // TSX    [PM]
         m_readfilesinput.sensor_id=SLC_TSX;
       else if (!strcmp(keyword,"TERRASARX"))         // TSX
@@ -1618,8 +1620,10 @@ void readinput(
         s_readfilesinput.sensor_id=SLC_JERS;
       else if (!strcmp(keyword,"ALOS"))              // [DON]
         s_readfilesinput.sensor_id=SLC_ALOS;
-      else if (!strcmp(keyword,"ALOS2"))              // ALOS2 [YQ]
+      else if (!strcmp(keyword,"ALOS2"))             // ALOS2 [YQ]
         s_readfilesinput.sensor_id=SLC_ALOS2;
+      else if (!strcmp(keyword,"GF3"))               // GF3 [YQ]
+        s_readfilesinput.sensor_id=SLC_GF3;
       else if (!strcmp(keyword,"TSX"))               // TSX [PM]
         s_readfilesinput.sensor_id=SLC_TSX;
       else if (!strcmp(keyword,"TERRASARX"))         // TSX

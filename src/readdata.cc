@@ -3936,6 +3936,92 @@ void alos2_dump_data(
 } // END alos2_dump_data(){}
 
 
+/****************************************************************
+ *    gf3_dump_data()                                           *
+ *                                                              *
+ * Via a system call to the python gf3_dump_data()              *
+ * gf3_dump_data() writes SLC data out in host order.           *
+ * it is important that crop_arg.dbow is correctly filled.      *
+ *                                                              *
+ * Dependencies: TBA                                *
+ * yuxiao                                                       *
+ ****************************************************************/
+void gf3_dump_data(
+       const input_crop &crop_arg)
+{
+  // ______ Write some info ______
+  TRACE_FUNCTION("gf3_dump_data (05-May-2021)")
+    // ______ Build command ______
+    // ______ make sure l0 etc. are correctly defined ______
+    // ____ assume these are filled correctly ___
+    int16 status = 0;    // [MA] check exit status of system calls for proper error handling
+    INFO.reset();
+  if (crop_arg.dbow.linehi!=0 && crop_arg.dbow.linelo!=0 &&
+      crop_arg.dbow.pixhi!=0 && crop_arg.dbow.pixlo!=0)
+    INFO << "gf3_dump_data.py " << crop_arg.filein1
+         << " " << crop_arg.fileout1
+         //<< " " << crop_arg.dbow.linelo - 1
+         << " " << crop_arg.dbow.linelo
+         << " " << crop_arg.dbow.linehi
+         //<< " " << crop_arg.dbow.pixlo - 1
+         << " " << crop_arg.dbow.pixlo
+         << " " << crop_arg.dbow.pixhi << ends;
+  else
+    INFO << "gf3_dump_data.py " << crop_arg.filein1
+         << " " << crop_arg.fileout1 << ends;
+  char cmd[512];// command string
+  strcpy(cmd, INFO.get_str());
+  INFO.print("With following command GF3 data was cropped.");
+  INFO.print(cmd);
+  PROGRESS.print("system call may take some time...");
+  status=system(cmd);// this does the work
+  if (status != 0)                                                          // [MA] TODO make it a function
+    {
+    ERROR << "gf3_dump_data.py: failed with exit code: " << status;
+    PRINT_ERROR(ERROR.get_str())
+    throw(some_error);
+    }
+  INFO.reset();
+  INFO.print();
+
+  // ====== Write results to scratchfile ======
+  ofstream scratchresfile("scratchres2raw", ios::out | ios::trunc);
+  bk_assert(scratchresfile,"writeslc: scratchres2raw",__FILE__,__LINE__);
+  scratchresfile
+    << "\n\n*******************************************************************\n";
+  if (crop_arg.fileid == MASTERID)
+    scratchresfile <<  "*_Start_" << processcontrol[pr_m_crop];
+  if (crop_arg.fileid == SLAVEID)
+    scratchresfile <<  "*_Start_" << processcontrol[pr_s_crop];
+  scratchresfile
+    << "\t\t\t" <<  crop_arg.idcrop
+    << "\n*******************************************************************"
+    << "\nData_output_file: \t\t\t\t"
+    <<  crop_arg.fileout1
+    << "\nData_output_format: \t\t\t\t"
+    << "complex_short" // TODO: check correct format
+    // ______ updateslcimage greps these ______
+    << "\nFirst_line (w.r.t. original_image): \t\t"
+    <<  crop_arg.dbow.linelo
+    << "\nLast_line (w.r.t. original_image): \t\t"
+    <<  crop_arg.dbow.linehi
+    << "\nFirst_pixel (w.r.t. original_image): \t\t"
+    <<  crop_arg.dbow.pixlo
+    << "\nLast_pixel (w.r.t. original_image): \t\t"
+    <<  crop_arg.dbow.pixhi
+    << "\nNumber of lines (non-multilooked): \t\t" <<  crop_arg.dbow.linehi-crop_arg.dbow.linelo+1
+    << "\nNumber of pixels (non-multilooked): \t\t" <<  crop_arg.dbow.pixhi-crop_arg.dbow.pixlo+1
+    << "\n*******************************************************************";
+  if (crop_arg.fileid == MASTERID)
+    scratchresfile <<  "\n* End_" << processcontrol[pr_m_crop] << "_NORMAL";
+  if (crop_arg.fileid == SLAVEID)
+    scratchresfile <<  "\n* End_" << processcontrol[pr_s_crop] << "_NORMAL";
+  scratchresfile
+    << "\n*******************************************************************"
+    <<  endl;
+  scratchresfile.close();
+} // END gf3_dump_data(){}
+
 
 /****************************************************************
  *    rs2dump_data                                              *

@@ -139,6 +139,7 @@ SCRIPTS	=	helpdoris \
                 rs2* \
                 csk* \
                 alos2* \
+				gf3* \
                 SarSpectrum* \
                 gammaReadfiles.csh \
                 hhmmss2sec.py \
