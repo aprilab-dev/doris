@@ -41,6 +41,19 @@ def locate(pattern: str, root=os.curdir) -> str:
     raise FileNotFoundError
 
 
+def hms2sec(hmsString, convertFlag='int'):
+    # convert HMS 2 sec for orbit files. 
+    # input hmsString syntax: XX:XX:XX.xxxxxx
+    secString = int(hmsString[0:2]) * 3600 + \
+        int(hmsString[3:5]) * 60 + \
+        float(hmsString[6:])
+    if convertFlag == 'int':
+        return int(secString)
+    elif convertFlag == 'float':
+        return float(secString)
+    else:
+        return int(secString)
+
 class GF3:
     """GF3 is used to read GaoFen-3 (GF3) meta data and to make it compatible
     with the DORIS (v4) input.
@@ -125,7 +138,7 @@ class GF3:
         for key, value in query_list.items():
             if value is None:
                 container[key] = "Unknown"
-            elif value.endswith(".meta.xml"):
+            elif value.endswith(".xml"):  # metafile
                 container[key] = os.path.basename(value)
             else:
                 for item in root.findall(value):
@@ -237,7 +250,7 @@ class GF3:
 
             print(
                 " {:>7} {:>15} {:>15} {:>15}".format(
-                    self.meta["Orbit Time"][i], x, y, z
+                    hms2sec(self.meta["Orbit Time"][i]), x, y, z
                 )
             )
 
