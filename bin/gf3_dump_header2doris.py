@@ -41,18 +41,21 @@ def locate(pattern: str, root=os.curdir) -> str:
     raise FileNotFoundError
 
 
-def hms2sec(hmsString, convertFlag='int'):
-    # convert HMS 2 sec for orbit files. 
+def hms2sec(hmsString, convertFlag="int"):
+    # convert HMS 2 sec for orbit files.
     # input hmsString syntax: XX:XX:XX.xxxxxx
-    secString = int(hmsString[11:13]) * 3600 + \
-        int(hmsString[14:16]) * 60 + \
-        float(hmsString[17:])
-    if convertFlag == 'int':
+    secString = (
+        int(hmsString[11:13]) * 3600
+        + int(hmsString[14:16]) * 60
+        + float(hmsString[17:])
+    )
+    if convertFlag == "int":
         return round(secString)
-    elif convertFlag == 'float':
+    elif convertFlag == "float":
         return float(secString)
     else:
         return round(secString)
+
 
 class GF3:
     """GF3 is used to read GaoFen-3 (GF3) meta data and to make it compatible
@@ -169,6 +172,11 @@ class GF3:
             locate("GF3*L1A*.tiff", os.path.dirname(self.meta["path"]))
         )
 
+        # correct two way slant range time
+        container["Range_time_to_first_pixel (2way) (ms)"] = (  # us to ms
+            float(container["Range_time_to_first_pixel (2way) (ms)"]) * 10 ** -6
+        )
+
         self.meta.update(container)
 
         return self
@@ -275,13 +283,13 @@ if __name__ == "__main__":
 
     # figure out the input parameters.
     if len(sys.argv) != 2:
-        print('\nError   : Unrecognized input or missing arguments!\n\n')
+        print("\nError   : Unrecognized input or missing arguments!\n\n")
         gf3.usage()
         sys.exit(1)
     try:
         meta_file = sys.argv[1]
     except Exception:
-        print('\nError   : Unrecognized input or missing arguments!\n\n')
+        print("\nError   : Unrecognized input or missing arguments!\n\n")
         gf3.usage()
         sys.exit(1)
 
