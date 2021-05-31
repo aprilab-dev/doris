@@ -112,7 +112,7 @@ class GF3:
             "Xtrack_f_DC_linear (Hz/s, early edge)": "processinfo//DopplerCentroidCoefficients//d1",
             "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": "processinfo//DopplerCentroidCoefficients//d2",
             "Range_time_to_first_pixel (2way) (ms)": "imageinfo//nearRange",
-            "Range_sampling_rate (computed, MHz)": "imageinfo//eqvPRF",
+            "Range_sampling_rate (computed, MHz)": "imageinfo//eqvFs",
             "Total_range_band_width (MHz)": "processinfo//RangeLookBandWidth",
             "Weighting_range": None,
             # SLC info
