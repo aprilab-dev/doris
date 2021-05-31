@@ -44,15 +44,15 @@ def locate(pattern: str, root=os.curdir) -> str:
 def hms2sec(hmsString, convertFlag='int'):
     # convert HMS 2 sec for orbit files. 
     # input hmsString syntax: XX:XX:XX.xxxxxx
-    secString = int(hmsString[0:2]) * 3600 + \
-        int(hmsString[3:5]) * 60 + \
-        float(hmsString[6:])
+    secString = int(hmsString[11:13]) * 3600 + \
+        int(hmsString[14:16]) * 60 + \
+        float(hmsString[17:])
     if convertFlag == 'int':
-        return int(secString)
+        return round(secString)
     elif convertFlag == 'float':
         return float(secString)
     else:
-        return int(secString)
+        return round(secString)
 
 class GF3:
     """GF3 is used to read GaoFen-3 (GF3) meta data and to make it compatible

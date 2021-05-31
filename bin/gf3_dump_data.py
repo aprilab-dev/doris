@@ -65,7 +65,7 @@ def gf3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 
     outStream.write("\n")
     outStream.write("**************************************************\n")
-    outStream.write("*_Start_crop:			ALOS2\n")
+    outStream.write("*_Start_crop:			GF3\n")
     outStream.write("**************************************************\n")
     outStream.write("Data_output_file: 	%s\n" % fileout)
     outStream.write("Data_output_format: 			complex_short\n")
