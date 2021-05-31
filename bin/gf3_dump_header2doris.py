@@ -6,6 +6,10 @@ import sys
 import fnmatch
 from typing import Any, Dict
 from xml.etree import ElementTree
+from datetime import datetime
+
+
+SPEED_OF_LIGHT = 299792458
 
 
 def locate(pattern: str, root=os.curdir) -> str:
@@ -174,7 +178,18 @@ class GF3:
 
         # correct two way slant range time
         container["Range_time_to_first_pixel (2way) (ms)"] = (  # us to ms
-            float(container["Range_time_to_first_pixel (2way) (ms)"]) * 10 ** -6
+            2000 * float(container["Range_time_to_first_pixel (2way) (ms)"]) / SPEED_OF_LIGHT
+        )
+
+        # update the time format
+        container["First_pixel_azimuth_time (UTC)"] = (
+            datetime.strftime(
+                datetime.strptime(
+                    container["First_pixel_azimuth_time (UTC)"],
+                    "%Y-%m-%d %H:%M:%S.%f"
+                ),
+                "%d-%b-%Y %H:%M:%S.%f"
+            )
         )
 
         self.meta.update(container)
