@@ -2373,6 +2373,10 @@ void dinsar(
   cn topomasterpos[numpointsL*numpointsP];      // 4 pass then diff from masterpos
   cn toposlavepos[numpointsL*numpointsP];
 
+  const int32 MAXITER   = 10;
+  const real8 CRITERPOS = 1e-6;
+  const real8 CRITERTIM = 1e-10;
+
   real8 lastline = -1.0;
   real8 B,Bpar,Bperp;
   matrix<real8> Bperptopo(LINENUMBER.lines(),1);
@@ -2392,11 +2396,11 @@ void dinsar(
       masterpos[i]       = masterorbit.getxyz(m_tazi);
       }
     // ______ Do it the *slow* way, get 3d positions slaves ______
-    lp2xyz(line,pixel,ellips,master,masterorbit,pointpos[i]);           // fill pointpos
-    xyz2orb(defoslavepos[i],defoslave,defoorbit,pointpos[i]);           // fill defopos
-    xyz2orb(toposlavepos[i],toposlave,toposlaveorbit,pointpos[i]);      // fill toposlavepos
+    lp2xyz(line,pixel,ellips,master,masterorbit,pointpos[i],MAXITER,CRITERPOS);           // fill pointpos
+    xyz2orb(defoslavepos[i],defoslave,defoorbit,pointpos[i],MAXITER,CRITERTIM);           // fill defopos
+    xyz2orb(toposlavepos[i],toposlave,toposlaveorbit,pointpos[i],MAXITER,CRITERTIM);      // fill toposlavepos
     if (FOURPASS==true) // fill topomasterpos
-      xyz2orb(topomasterpos[i],topomaster,topomasterorbit,pointpos[i]);
+      xyz2orb(topomasterpos[i],topomaster,topomasterorbit,pointpos[i],MAXITER,CRITERTIM);
     else // 3 pass, same topomaster as defomaster...
       topomasterpos[i] = masterpos[i];
 

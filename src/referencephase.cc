@@ -2382,27 +2382,33 @@ void getcorners(
   real8 phi;
   real8 lambda;
   real8 height;  
+
+  // declare const.
+  const int32 MAXITER   = 10;
+  const real8 CRITERPOS = 1e-6;
+  const real8 CRITERTIM = 1e-10;
+
   lp2ell(l0,p0,
          ellips, master, masterorbit,
-         phi, lambda, height);          // returned
+         phi, lambda, height, MAXITER, CRITERPOS);          // returned
   real8 phil0p0    = phi;
   real8 lambdal0p0 = lambda;
 
   lp2ell(lN,p0,
          ellips, master, masterorbit,
-         phi, lambda, height);          // returned
+         phi, lambda, height, MAXITER, CRITERPOS);          // returned
   real8 philNp0    = phi;
   real8 lambdalNp0 = lambda;
 
   lp2ell(lN,pN,
          ellips, master, masterorbit,
-         phi, lambda, height);          // returned
+         phi, lambda, height, MAXITER, CRITERPOS);          // returned
   real8 philNpN    = phi;
   real8 lambdalNpN = lambda;
 
   lp2ell(l0,pN,
          ellips, master, masterorbit,
-         phi, lambda, height);          // returned
+         phi, lambda, height, MAXITER, CRITERPOS);          // returned
   real8 phil0pN    = phi;
   real8 lambdal0pN = lambda;
 

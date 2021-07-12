@@ -191,13 +191,16 @@ void estorbits(const input_estorbits &estorbitsinput,
     << "\nMaximum number of available pixels:     " << obs.nRequested()
     << "\nCoherent observation pixels found:      " << obs.nInit();
 
+  const int32 MAXITER   = 10;
+  const real8 CRITERPOS = 1e-6;
+  const real8 CRITERTIM = 1e-10;
   
   // ====== compute conversion factors ======
   cn M, P;
   M = masterorbit.getxyz(master.line2ta(meanLine));
-  lp2xyz(meanLine,master.currentwindow.pixhi,ellips,master,masterorbit,P);
+  lp2xyz(meanLine,master.currentwindow.pixhi,ellips,master,masterorbit,P, MAXITER,CRITERPOS);
   real8 deltaTheta = acos((-M.normalize()).in((P-M).normalize()));
-  lp2xyz(meanLine,master.currentwindow.pixlo,ellips,master,masterorbit,P);
+  lp2xyz(meanLine,master.currentwindow.pixlo,ellips,master,masterorbit,P, MAXITER,CRITERPOS);
   deltaTheta -= acos((-M.normalize()).in((P-M).normalize()));
 
   const real8 rateConversion = 4. / (reference->originalwindow.lines()-1) * reference->prf;
@@ -248,7 +251,7 @@ void estorbits(const input_estorbits &estorbitsinput,
       // define theta as the look angle to the scene centre
       cn M, P;
       M = masterorbit.getxyz(master.line2ta(meanLine));
-      lp2xyz(meanLine,meanPix,ellips,master,masterorbit,P);
+      lp2xyz(meanLine,meanPix,ellips,master,masterorbit,P,MAXITER,CRITERPOS);
       theta = acos((-M.normalize()).in((P-M).normalize()));
     }
 
@@ -1274,6 +1277,11 @@ void constrainSolution(matrix<real8> &Qxx, matrix<real8> &rhs, const matrix<int1
  *                                                              *
  * Hermann Baehr, 17-Mar-2011                                   *
  ****************************************************************/
+
+const int32 MAXITER   = 10;
+const real8 CRITERPOS = 1e-6;
+const real8 CRITERTIM = 1e-10;
+
 real8 getAzOffset(const input_ell &ellips,
                   const slcimage  &master,
 		  const slcimage  &slave,
@@ -1283,8 +1291,8 @@ real8 getAzOffset(const input_ell &ellips,
   const uint cen_pix = (slave.currentwindow.pixlo +slave.currentwindow.pixhi)/2;
   cn P;
   real8 tAzi, tRg;
-  lp2xyz(1,cen_pix,ellips,slave,slaveorbit,P);
-  xyz2t(tAzi,tRg,master,masterorbit,P);
+  lp2xyz(1,cen_pix,ellips,slave,slaveorbit,P,MAXITER,CRITERPOS);
+  xyz2t(tAzi,tRg,master,masterorbit,P, MAXITER,CRITERTIM);
   return master.t_azi1-tAzi;
 } // END getAzOffset
 
@@ -1682,11 +1690,15 @@ matrix<real8> observationdata::lineOfDesignMatrix(const uint index,int16 version
       ELLIPS.b += height(index,0);
     }
 
+  const int32 MAXITER   = 10;
+  const real8 CRITERPOS = 1e-6;
+  const real8 CRITERTIM = 1e-10;
+
   // ______ find corresponding pos. on master orbit (M), slave orbit (S) and surface (P) ______
   cn M, S, P;
   M = (*masterorbit).getxyz(master->t_azi1+(ln-1)/master->prf); // compute point on master orbit
-  lp2xyz(ln, px, ELLIPS, *master, *masterorbit, P);          // find corresponding surface point
-  xyz2orb(S, *slave, *slaveorbit, P);                         // find point on slave orbit
+  lp2xyz(ln, px, ELLIPS, *master, *masterorbit, P, MAXITER,CRITERPOS);          // find corresponding surface point
+  xyz2orb(S, *slave, *slaveorbit, P, MAXITER,CRITERTIM);                         // find point on slave orbit
 
   // ______ initialise Ai ______
   matrix<real8> Ai;
