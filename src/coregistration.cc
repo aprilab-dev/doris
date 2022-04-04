@@ -281,7 +281,7 @@ void coarsecorrel(
   bool forceoddp = false;
   if (!isodd(MasksizeL))
     {
-    forceoddl = true; 
+    forceoddl = true;
     MasksizeL+=1;                       // force oddness
     }
   if (!isodd(MasksizeP))
@@ -798,7 +798,7 @@ void coarsecorrelfft(
   // ______ Get good general estimate for offsetL, offsetP ______
   int32 offsetLines  = -999;
   int32 offsetPixels = -999;
-  
+
   //MCC
   //MCC instead of one offset output a simple polynomial
   int32 initNobs = Result.lines();  //Nof observations
@@ -806,7 +806,7 @@ void coarsecorrelfft(
   // select first the values with coherence higher than thCoh
   matrix<int32> indHigh(initNobs,1);
   real8 thCoh = 0.2;
-  
+
   //get number of Obs above a threshold
   for (uint k=0; k<initNobs; k++)
     {
@@ -830,20 +830,20 @@ void coarsecorrelfft(
   //the means are used to calculate the value of the linear poly at the mean line and pixel
   uint32 meanP = 0; //mean PX number
   uint32 meanL = 0;//mean line number
-  
+
   //if there are not values above the coehrence then used the iunitial offsets e.g., based on orbits
 if (Nobs<1)
 {
-   
+
     offsetLines  = initoffsetL;
     offsetPixels = initoffsetP;
     rhsL(0,0)    = 0;
     rhsL(1,0)    = offsetLines;
     rhsP(0,0)    = 0;
     rhsP(1,0)    = offsetPixels;
-  
+
 }
-  //if there are not too enough to calculate the poly then used the traditional "weighted mean" method 
+  //if there are not too enough to calculate the poly then used the traditional "weighted mean" method
 else if (Nobs<10)
 {
    getoffset(Result,offsetLines,offsetPixels);
@@ -851,21 +851,21 @@ else if (Nobs<10)
     rhsL(1,0)    = offsetLines;
     rhsP(0,0)    = 0;
     rhsP(1,0)    = offsetPixels;
-  
+
 }
   // do estimations using BLUE
 else
 {
     //To exot the while loop which is used to remove outliers
    bool flagExit = false;
-    
+
   matrix<real8> yL(Nobs,1);                   // observation
   matrix<real8> yP(Nobs,1);                   // observation
   matrix<real8> AL(Nobs,2);                 // designmatrix
   matrix<real8> AP(Nobs,2);                 // designmatrix
   matrix<real8> Qy_1(Nobs,1);            // diagonal covariance matrix defined as vector to save memory
   matrix<uint32> indeces(Nobs,1);
-  
+
     //While loop is perfomed until the maximum residual are very small or not enough obs
  while (Nobs>9 &  flagExit != true)
  {INFO << "Nobs " << Nobs;
@@ -899,25 +899,25 @@ else
       newK++;
      }
     }
-  
+
   INFO << "Nof new Obs : " << newK;
   INFO.print();
-  
+
   Qy_1 = Qy_1 / mean(Qy_1);// normalize weights (for tests!)
   meanP = meanP/newK;
   meanL = meanL/newK;
   //
   //matrix<real8>rhsL(2,1);
   //getLS(yL,AL,Qy_1,xhat_rhsL);
-  
+
   //LS Qx_hat for lines and pixels
   matrix<real8> Qx_hat_L    = matTxmat(AL,diagxmat(Qy_1,AL));
   matrix<real8> Qx_hat_P    = matTxmat(AP,diagxmat(Qy_1,AP));
- 
+
    //xhat for lines and pixels, still it needs to be multiplied times inverse of Qxhat, see below
    rhsL = matTxmat(AL,diagxmat(Qy_1,yL));
    rhsP = matTxmat(AP,diagxmat(Qy_1,yP));
-    
+
     // ______Compute solution______
     choles(Qx_hat_L);             // Cholesky factorisation normalmatrix
     choles(Qx_hat_P);             // Cholesky factorisation normalmatrix
@@ -935,28 +935,28 @@ else
     real4 max_eP =0;
     uint32 indMaxL =0;
     uint32 indMaxP =0;
-  
+
 // looks for the obs which has whose residual norm is maximum, for both lines and pixels
     for (uint32 k=0; k<Nobs;k++)
-    {      
+    {
         if (sqrt(eL_hat(k,0)*eL_hat(k,0)) >max_eL)
         {
         max_eL  = sqrt(eL_hat(k,0)*eL_hat(k,0));
         indMaxL = k;
-    
+
         }
         if ( sqrt(eP_hat(k,0)*eP_hat(k,0))>max_eP)
         {
         max_eP=sqrt(eP_hat(k,0)*eP_hat(k,0));
         indMaxP =k;
-   
-        } 
+
+        }
     }
-    
+
      INFO<< "max_eL : " <<  max_eL;
      INFO<< ", max_eP : " <<  max_eP;
      INFO.print();
-     
+
      //if residuals are small then exit
     if (max_eL <3.0 && max_eP<3.0)
     {
@@ -967,7 +967,7 @@ else
     }
     else
     {
-       INFO<<"removing obs " <<indeces(indMaxL,0) <<", and obs "<< indeces(indMaxP,0) << ", offset L: " 
+       INFO<<"removing obs " <<indeces(indMaxL,0) <<", and obs "<< indeces(indMaxP,0) << ", offset L: "
            << Result(indeces(indMaxL,0),1)<<", offset P: " << Result(indeces(indMaxP,0),2);
        INFO.print();
        //remove residuals by setting its coherence to zero
@@ -977,9 +977,9 @@ else
        if (indMaxP!=indMaxL)
         Nobs -=2;
        else
-        Nobs--;    
+        Nobs--;
     }
-    
+
 
    }//end while Nobs>10
     offsetLines  = int32(meanL*rhsL(0,0)) +  int32(rhsL(1,0))   ;
@@ -1028,7 +1028,7 @@ else
                  << "\nInitial_Offset_CoarseCorr_lines: \t"
                  <<   rhsL(1,0)                             // MCC
                  << "\nSlope_CoarseCorr_pixels: \t\t" //MCC
-                 <<  rhsP(0,0) 
+                 <<  rhsP(0,0)
                  <<  "\nInitial_Offset_CoarseCorr_pixels: \t"
                  <<   rhsP(1,0)                             // MCC
                  << "\nNumber of correlation windows: \t\t" //MA informational
@@ -1195,7 +1195,7 @@ void mtiming_correl(
     uint ll,pp;
     for (uint i=0; i<Nwin; ++i)
       {
-       
+
       ifpos >> ll >> pp;
       //Centers(i,0) = uint(ll);                  // correct for lower left corner
       //Centers(i,1) = uint(pp);                  // correct for lower left corner
@@ -2102,7 +2102,7 @@ void getoffset(
   }
   //var_coh /= real4(nW-1);
   var_coh /= real4(nWNANrm-1);
-  
+
   INFO << "Mean coherence at estimated positions: " << mean_coh;
   INFO.print();
   const real4 std_coh = sqrt(var_coh);
@@ -2512,21 +2512,21 @@ void finecoreg(
         orbit           &slaveorbit,   // cannot be const for spline
         const BASELINE  &baseline)
 //input_ellips, master, slave, masterorbit, slaveorbit, baseline);
-  {          
+  {
     if (fineinput.shiftazi == 0)
-     {            
+     {
            INFO << "I assume you have already deramped or centered the data spectrum..." ;
            INFO.print();
     }
     else if (fineinput.shiftazi == 2)
-     {            
+     {
            INFO << "\nPROCESS: Deramp Master and Slave spectrum in FINE COREGISTRATION..." ;
            INFO.print();
-         
+
           // deramp( minfo, fineinput ,masterorbit);
-           
+
     }
-    
+
   TRACE_FUNCTION("finecoreg (BK 29-Oct-99)")
   char dummyline[ONE27];
   //const uint Mfilelines   = minfo.currentwindow.lines();
@@ -2666,13 +2666,13 @@ void finecoreg(
       }
     }
 
- 
+
   // ______Compute coherence of these points______
   matrix<complr4> Master;
   matrix<complr4> Mask;
   matrix<real4>   Result(Nwin,3);       // R(i,0):delta l;
                                         // R(i,1):delta p; R(i,2):correl
-  
+
   // ______ Progress message ______
   int32 tenpercent = int32(rint(Nwin/10.0));
   if (tenpercent==0) tenpercent = 1000;
@@ -2680,15 +2680,15 @@ void finecoreg(
 
    int32 fivepercent = int32(rint(Nwin/5.0));
   if (fivepercent==0) fivepercent = 1000;
-  
+
 //if (fineinput.method== fc_coherence)          // input file  ()
  //     radarcodedem(fineinput, input_ellips, input_i_comprefdem,
   //                 master, slave, interferogram, masterorbit, slaveorbit);
-    
+
 // ====== Compute for all locations ======
   for (uint i=0;i<Nwin;i++)
     {//all locations
-     
+
     // ______ Give progress message ______
     if (i%tenpercent==0)
       {
@@ -2700,21 +2700,21 @@ void finecoreg(
     // ______Minlminp (lower left corners) of window in master system______
     const uint minMwinL = Minlminp(i,0);
     const uint minMwinP = Minlminp(i,1);
-    
+
     //***
-    //INFO <<"Pos: " <<minMwinL <<", "<<minMwinP 
+    //INFO <<"Pos: " <<minMwinL <<", "<<minMwinP
     //     <<"\n , Before initoffsetL: "<< initoffsetL << "initoffsetP" << initoffsetP;
     // INFO.print();
-     
-     
+
+
     initoffsetL =   lrint(sinfo.slopeL*minMwinL +sinfo.realoffsetL);           // initial slope pixels
     initoffsetP =   lrint(sinfo.slopeP*minMwinP +sinfo.realoffsetP);              // initial slope lines
-    
-    
+
+
    // INFO << "\n After initoffsetL: "<< initoffsetL << ", initoffsetP: " << initoffsetP;
    // INFO.print();
     //MCC
-    
+
     DEBUG.print(" ");
     DEBUG << "Window: " << i << " [" << minMwinL << ", " << minMwinP << "]";
     DEBUG.print();
@@ -2729,9 +2729,9 @@ void finecoreg(
     Master = minfo.readdata(master);
     Mask   = sinfo.readdata(mask);
 
-   
-    
-    
+
+
+
     // ______Coherence______
     // ______update offsetL/P______
     real4 offsetL, offsetP;
@@ -2787,13 +2787,13 @@ void finecoreg(
 
         // ______ Oversample complex chips by factor two ______
         // ______ neg.shift input shifts to -> 0
-         
+
         if (fineinput.shiftazi == 1)//Using the DC poly only
         {
         DEBUG.print("Centering azimuth spectrum patches around 0 using the DC polynomial");
         const real4 m_pixlo = real4(master.pixlo);// neg.shift -> 0
         const real4 s_pixlo = real4(mask.pixlo);// neg.shift -> 0
-        
+
         shiftazispectrum(Master,minfo,-m_pixlo);// shift from fDC to zero
         shiftazispectrum(Mask,  sinfo,-s_pixlo);// shift from fDC to zero
         }
@@ -2837,13 +2837,13 @@ void finecoreg(
          //Do not remove if the radar is Sentinel-1
         // if (minfo.sensor == SLC_S1A)
         //     doCenterSpec = false;
-         
+
         if (fineinput.shiftazi == 1)
         {
         DEBUG.print("Centering azimuth spectrum patches around 0 using the DC polynomial");
         const real4 m_pixlo = real4(master.pixlo);// neg.shift -> 0
         const real4 s_pixlo = real4(mask.pixlo);// neg.shift -> 0
-        
+
         shiftazispectrum(Master,minfo,-m_pixlo);// shift from fDC to zero
         shiftazispectrum(Mask,  sinfo,-s_pixlo);// shift from fDC to zero
         }
@@ -2879,25 +2879,25 @@ void finecoreg(
            WARNING << "FINE: AccP for magfft can be half of the window size at max, changing to "  << AccP ;
            WARNING.print();
           }
-        
+
          matrix<real4> refPhaseDEM(mask.lines(),mask.pixels());//only for CCC, but I need to define it here
-         
+
         // slcimage   deminfo = minfo;
-          
+
         if (specified(fineinput.forefdem)) // if spec. then read the needed window
         {
-          
+
             window zerooffset  (0,0,0,0) ;
-           
+
             window demWin = master;
-          
-            
+
+
             demWin.linelo -= minfo.currentwindow.linelo + 1;
             demWin.linehi -= minfo.currentwindow.linelo + 1;
             demWin.pixlo  -= minfo.currentwindow.pixlo  + 1;
             demWin.pixhi  -= minfo.currentwindow.pixlo  + 1;
-          
-            
+
+
          //   INFO << "reading DEM phases from: " << fineinput.forefdem  << "\n";
          //   INFO << "        nof lines : " <<minfo.currentwindow.lines()<<endl;
          //   INFO << " demWin.linelo " << demWin.linelo << " info.currentwindow.linelo  " << minfo.currentwindow.linelo<<endl;
@@ -2905,7 +2905,7 @@ void finecoreg(
          //   INFO << " demWin.pixlo  " << demWin.pixlo << " info.currentwindow.pixlo  " << minfo.currentwindow.pixlo<<endl;
          //   INFO << " demWin.pixhi  " << demWin.pixhi << " info.currentwindow.pixhi  " << minfo.currentwindow.pixhi<<endl;
          //   INFO.print();
-            
+
            // refPhaseDEM = deminfo.readdata(master);
             readfile(refPhaseDEM,fineinput.forefdem,minfo.currentwindow.lines(),demWin,zerooffset);
         }
@@ -2921,28 +2921,28 @@ void finecoreg(
         shiftazispectrum(Master,minfo,-m_pixlo);// shift from fDC to zero
         shiftazispectrum(Mask,  sinfo,-s_pixlo);// shift from fDC to zero
         }
-    
+
         DEBUG.print("Oversampling patches with factor two using zero padding");
 
-        uint ovsFc = 2;//2^4 
+        uint ovsFc = 2;//2^4
         const matrix<complr4> m_ovs_chip = oversample(Master,ovsFc,ovsFc);
         // MCC
         //s_ovs_chip is the oversample salve
         //It is going to be modified
         // s_ovs_chip spectrum will be centered at the same frequency as the master.
         // Otherwise the coherence is way understimated
-    
+
         matrix<complr4> s_ovs_chip = oversample(Mask,  ovsFc,ovsFc);
         //size matrix
         uint L = m_ovs_chip.lines();
         uint P = m_ovs_chip.pixels();
 
-     
+
      //reference phase
-        matrix <real8> REFPHASE(Master.lines(),Master.pixels());      
-        matrix <real8> allPixels(Master.lines(),Master.pixels()); 
-        matrix <real8> allLines(Master.lines(),Master.pixels()); 
-        
+        matrix <real8> REFPHASE(Master.lines(),Master.pixels());
+        matrix <real8> allPixels(Master.lines(),Master.pixels());
+        matrix <real8> allLines(Master.lines(),Master.pixels());
+
        const int16   MAXITER   = 10;        // maximum number of iterations
        const real8   CRITERPOS = 1e-6;      // 1micrometer
        const real8   CRITERTIM = 1e-10;     // seconds (~10-6 m)
@@ -2956,9 +2956,9 @@ void finecoreg(
       {
       for (register int32 pp=0; pp<Master.pixels(); ++pp)
         {
-  
-      
-            
+
+
+
         pixel = pp + master.pixlo;
         line  = ll + master.linelo;
         allPixels(ll,pp)  = real8(pixel);
@@ -2972,7 +2972,7 @@ void finecoreg(
         cn P;                                       // point, returned by lp2xyz
         lp2xyz(line,pixel,ell,minfo,masterorbit,
                P,MAXITER,CRITERPOS);
-   
+
         // ______ Compute xyz for slave satellite from P ______
         real8 s_tazi;                               // returned, not used
         real8 s_trange;                             // returned
@@ -2980,9 +2980,9 @@ void finecoreg(
               slaveorbit,
               P,MAXITER,CRITERTIM);
 
-        if (specified(fineinput.forefdem) ) 
+        if (specified(fineinput.forefdem) )
         {
-          
+
             //refPhaseDEM is the ref phase including DEM
           REFPHASE(ll,pp) = m_minpi4cdivlam*m_trange -
                             s_minpi4cdivlam*s_trange + real8(refPhaseDEM(ll,pp));
@@ -2992,51 +2992,51 @@ void finecoreg(
         REFPHASE(ll,pp) = m_minpi4cdivlam*m_trange -
                           s_minpi4cdivlam*s_trange;
         }
-       
+
         //add ref phase to slave, or subtract it from master, both are the same
         Mask(ll,pp) *=   complr4(fast_cos(REFPHASE(ll,pp)),fast_sin(REFPHASE(ll,pp)));
       }
     }
-        
-        
+
+
     //    std::ostringstream partName ;
     //    partName<<"REFPHASE"<< i<<".bin";
-        
+
     //    std::string strfilenameRamp = partName.str();
     //    char * filenameRamp = new char [strfilenameRamp.size()+1];
 
         //char filenameRamp[strfilenameRamp.size()+1];
     //    strcpy( filenameRamp,strfilenameRamp.c_str());
-        
-        
-   //    ofstream ofilefftIfg;    
+
+
+   //    ofstream ofilefftIfg;
    //    openfstream(ofilefftIfg,filenameRamp,true);
    //    bk_assert(ofilefftIfg,filenameRamp,__FILE__,__LINE__);
    //    ofilefftIfg << REFPHASE;
-      
+
    //    ofilefftIfg.close();
-      
-       
-          
+
+
+
       //  fast_dotmultconjphase(Mask,REFPHASE);
         s_ovs_chip = oversample(Mask,  ovsFc,ovsFc);
-//testing        
-      
-        
 //testing
-        
-        
+
+
+//testing
+
+
         //s_ovs_chip is centered at the same value as the master
         //I create it constant because the original code was also a const
        const  matrix<complr4> detr_s_ovs_chip = s_ovs_chip;
         coheren = coherencefft(m_ovs_chip, detr_s_ovs_chip,
                                  OVS/2, 2*AccL, 2*AccP,
                                         offsetL,offsetP);
-        
+
         offsetL /= real8(ovsFc);// orig data oversampled by factor 2
         offsetP /= real8(ovsFc);// orig data oversampled by factor 2
-        
-       
+
+
         break;
         }
 
@@ -3056,7 +3056,7 @@ void finecoreg(
       INFO.print();
     } // for nwin
 
-  
+
 
   // ______ Position approx. with respect to center of window ______
   // ______ correct position array for center instead of lower left ______
@@ -3242,16 +3242,16 @@ real4 coherencefft(
   window win2(halfL, halfL+L-1, halfP, halfP+P-1);
   Master2.setdata(win1,Master,windef);      // copy of master mcc
   Mask2.setdata(win2,Mask,windef);          // copy of slave  mcc
-  
+
 
   // ______ Crossproducts in spectral/space domain ______
   // ______ Use Mask2 to store cross products temporarly ______
-  
+
   // fft(Master2,2);                             // forward transform over rows
   // fft(Master2,1);
- 
+
   fft2d(Master2);
- 
+
   //MCC DEBUG
 #ifdef REALLYDEBUG
  INFO << "nof lines ifftMask2 : "<< Master2.lines() ;
@@ -3267,19 +3267,19 @@ real4 coherencefft(
 
    //fft(Mask2,2);                             // forward transform over rows
    //fft(Mask2,1);
- 
+
   fft2d(Mask2);
- 
+
   Master2.conj();
- 
+
   Mask2 *= Master2;      // corr = conj(M).*S
-  
+
   //ifft(Mask2,2);
  // ifft(Mask2,1);
   ifft2d(Mask2);         // real(Mask2): cross prod. in space
 
-  
-  
+
+
   //MCC DEBUG
 #ifdef REALLYDEBUG
  INFO << "nof lines ifftMask2 : "<< Mask2.lines() ;
@@ -3616,7 +3616,7 @@ real4 crosscorrelate(
  *    positive offsetL: Mask is shifted up                      *
  *    positive offsetP: Mask is shifted left                    *
  *                                                              *
- * Bert Kampes, 12-Aug-2005    
+ * Bert Kampes, 12-Aug-2005
  * MCC change magnitude for intensity Dec 2014                           *
  ****************************************************************/
 real4 intensity(
@@ -4685,8 +4685,8 @@ void coregpm(
     << "\nNormalization_Lines:   \t" <<sminL<< " " <<smaxL<< ""
     << "\nNormalization_Pixels:  \t" <<sminP<< " " <<smaxP<< ""
     << "\nEstimated_coefficientsL:\n";
-  
-  
+
+
   int32 coeffL = 0;
   int32 coeffP = 0;
   for (i=0; i<Nunk; i++)
@@ -5330,7 +5330,7 @@ void resample(
   const real8 maxL           = minMaxL(1,0);
   const real8 minP           = minMaxP(0,0);
   const real8 maxP           = minMaxP(1,0);
-  
+
   INFO << "resample: polynomial normalized by factors: "
        << minL << " " << maxL << " " << minP << " " << maxP << " to [-2,2]";
   INFO.print();
@@ -5980,7 +5980,16 @@ void resample(
               polyval(normalize(real4(line),minL,maxL),
                       normalize(real4(pixel),minP,maxP),
                       cpmP,degree_cpmP);                              // e.g. 2.5232
+            // YQ Debug: check correctness of linterLine and linterPixel
+            DEBUG << "interpL/line/interP/pixel: ["
+                  << interpL << ":" << line << ", "
+                  << interpP  << ":" << pixel  << "]";
+            DEBUG.print();
           }
+          DEBUG << "minL/maxL/minP/maxP: ["
+                << minL << ":" << maxL << ", "
+                << minP  << ":" << maxP  << "]";
+          DEBUG.print();
 
 
       // ______ Get correct lines for interpolation ______
@@ -6093,30 +6102,30 @@ void resample(
     {
     case FORMATCR4:
       {
-           
-     
+
+
           //This buffer is of size 1 line and RESULT.pixels() plus the zero-border pixels
        matrix<complr4> thisBuffer(nofLinesBuf,RESULT.pixels()+write0pixels1+write0pixelsN);
        matrix<real4> thisBuffer_line(nofLinesBuf,SLAVE_LINE.pixels()+write0pixels1+write0pixelsN);
        matrix<real4> thisBuffer_pixel(nofLinesBuf,SLAVE_PIXEL.pixels()+write0pixels1+write0pixelsN);
-       
+
        DEBUG << "thisBuffer pixels : " << thisBuffer.pixels() << "\n";
        DEBUG << "thisBuffer lines:   " << thisBuffer.lines();
        DEBUG.print();
-       
+
       for (int32 thisline=0; thisline<=linecnt; thisline++)
         {
         //Use loop to create buffer not to write each pixel results
-        
+
           //Write the results per line
           //First allocate the results to the corresponding window
            window windef(0,0,0,0);                       // default, thus copy to total matrix
-           
+
            //The allocation window starts at 0 and ends at 0
            // Starts at pixel write0pixels1 and ends at pixel RESULT.pixels()-1
            //the rest are atutimatically set to zero
            window win1(0, 0,write0pixels1, RESULT.pixels()-1);
-  
+
            //Allocate the corresponding line to the buffer this buffer
           thisBuffer.setdata(win1,RESULT.getrow(thisline),windef) ;
           thisBuffer_line.setdata(win1,SLAVE_LINE.getrow(thisline),windef) ;
@@ -6127,9 +6136,9 @@ void resample(
               ofile.write((char*)&thisBuffer[0][0],thisBuffer.pixels()*sizeof(thisBuffer(0,0)));
               slavelineofile.write((char*)&thisBuffer_line[0][0],thisBuffer_line.pixels()*sizeof(thisBuffer_line(0,0))); //[FvL]
               slavepixelofile.write((char*)&thisBuffer_pixel[0][0],thisBuffer_pixel.pixels()*sizeof(thisBuffer_pixel(0,0)));
-              
-           
-   
+
+
+
         }
       break;
       }
@@ -6140,11 +6149,11 @@ void resample(
        matrix<compli16> thisBuffer(nofLinesBuf,RESULT.pixels()+write0pixels1+write0pixelsN);
        matrix<real4> thisBuffer_line(nofLinesBuf,SLAVE_LINE.pixels()+write0pixels1+write0pixelsN);
        matrix<real4> thisBuffer_pixel(nofLinesBuf,SLAVE_PIXEL.pixels()+write0pixels1+write0pixelsN);
-       
+
        DEBUG << "thisBuffer pixels : " << thisBuffer.pixels() << "\n";
        DEBUG << "thisBuffer lines:   " << thisBuffer.lines();
        DEBUG.print();
-       
+
       for (int32 thisline=0; thisline<=linecnt; thisline++)
         {
         //Use loop to create buffer not to write the each pixel results
@@ -6152,26 +6161,26 @@ void resample(
           //First allocate the results to the corresponding window
            window windef(0,0,0,0);                       // default, thus copy to total matrix
            window win1(0, 0,write0pixels1, RESULT.pixels()-1);
-           
+
             //The allocation window starts at 0 and ends at 0
            // Starts at pixel write0pixels1 and ends at pixel RESULT.pixels()-1
            //the rest are atutimatically set to zero
            //Need loop for casted data
           for (int32 thisPx = write0pixels1; thisPx<= RESULT.pixels()-1;thisPx++)
            thisBuffer(0,thisPx) = cr4toci2(RESULT(thisline,thisPx-write0pixels1));
-              
-        
+
+
           thisBuffer_line.setdata(win1,SLAVE_LINE.getrow(thisline),windef) ;
           thisBuffer_pixel.setdata(win1,SLAVE_PIXEL.getrow(thisline),windef) ;
-      
+
             //Dump data to file
             // ______ WRITE the interpolated data per row ______
-          
+
               ofile.write((char*)&thisBuffer[0][0],thisBuffer.pixels()*sizeof(thisBuffer(0,0)));
               slavelineofile.write((char*)&thisBuffer_line[0][0],thisBuffer_line.pixels()*sizeof(thisBuffer_line(0,0))); //[FvL]
               slavepixelofile.write((char*)&thisBuffer_pixel[0][0],thisBuffer_pixel.pixels()*sizeof(thisBuffer_pixel(0,0)));
-         
-    
+
+
         }
       break;
       }
