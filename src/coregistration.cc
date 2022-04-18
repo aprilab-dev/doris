@@ -5972,24 +5972,48 @@ void resample(
             //interpL = line  + polyval(line,pixel,cpmL,degree_cpmL); // e.g. 255.35432
             //interpP = pixel + polyval(line,pixel,cpmP,degree_cpmP); // e.g. 2.5232
             // ______ BK USE normalized coordinates, do this smarter .... !!!!
-            interpL = line  +
-              polyval(normalize(real4(line),minL,maxL),
+
+            // YQ Debug: check correctness of linterLine and linterPixel
+            if (line%100==0 && pixel%100==0) {  // limit print numbers
+              interpL = line  +
+                polyval(normalize(real4(line),minL,maxL),
+                      normalize(real4(pixel),minP,maxP),
+                      cpmL,22);                              // e.g. 255.35432
+                   //   cpmL,degree_cpmL);                              // e.g. 255.35432
+              interpP = pixel +
+                polyval(normalize(real4(line),minL,maxL),
+                      normalize(real4(pixel),minP,maxP),
+                      cpmP, 22);                              // e.g. 2.5232
+                   //   cpmP,degree_cpmP);                              // e.g. 2.5232
+              DEBUG << "interpL/line/interP/pixel: ["
+                    << interpL << ":" << line << ", "
+                    << interpP  << ":" << pixel  << "]";
+              DEBUG.print();
+              DEBUG << "minL/maxL/minP/maxP: ["
+                    << minL << ":" << maxL << ", "
+                    << minP  << ":" << maxP  << "]";
+              DEBUG.print();
+              // ______ YQ debug ______
+              DEBUG << "Check Coefficient: ["
+                    << cpmL(0,0) << " " << cpmL(1,0) << " "
+                    << cpmL(2,0) << " " << cpmL(3,0) << " "
+                    << cpmL(4,0) << " " << cpmL(5,0) << " " << degree_cpmL << "]";
+              DEBUG.print();
+            }
+            else
+            {
+              interpL = line  +
+               polyval(normalize(real4(line),minL,maxL),
                       normalize(real4(pixel),minP,maxP),
                       cpmL,degree_cpmL);                              // e.g. 255.35432
-            interpP = pixel +
-              polyval(normalize(real4(line),minL,maxL),
+                   //   cpmL,degree_cpmL);                              // e.g. 255.35432
+              interpP = pixel +
+                polyval(normalize(real4(line),minL,maxL),
                       normalize(real4(pixel),minP,maxP),
-                      cpmP,degree_cpmP);                              // e.g. 2.5232
-            // YQ Debug: check correctness of linterLine and linterPixel
-            DEBUG << "interpL/line/interP/pixel: ["
-                  << interpL << ":" << line << ", "
-                  << interpP  << ":" << pixel  << "]";
-            DEBUG.print();
+                      cpmP, degree_cpmP);                              // e.g. 2.5232
+                   //   cpmP,degree_cpmP);                              // e.g. 2.5232
+            }
           }
-          DEBUG << "minL/maxL/minP/maxP: ["
-                << minL << ":" << maxL << ", "
-                << minP  << ":" << maxP  << "]";
-          DEBUG.print();
 
 
       // ______ Get correct lines for interpolation ______

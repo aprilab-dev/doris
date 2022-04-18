@@ -2604,6 +2604,17 @@ int main(
     coeff_cpmP = readcoeff(input_general.i_resfile,
                  "Estimated_coefficientsP:",Ncoeffs(degreecpm));
 
+    // ______ YQ debug ______
+    DEBUG << "Check Coefficient: ["
+          << coeff_cpmL(0,0) << " " << coeff_cpmL(1,0) << " "
+          << coeff_cpmL(2,0) << " " << coeff_cpmL(3,0) << " "
+          << coeff_cpmL(4,0) << " " << coeff_cpmL(5,0) << " " << "]";
+    DEBUG.print();
+    DEBUG << "Check Coefficient: ["
+      << coeff_cpmP(0,0) << " " << coeff_cpmP(1,0) << " "
+      << coeff_cpmP(2,0) << " " << coeff_cpmP(3,0) << " "
+      << coeff_cpmP(4,0) << " " << coeff_cpmP(5,0) << " " << "]";
+    DEBUG.print();
 
     // bk 1 sep 2000, req. for resample...
     //interferogram.win = getoverlap(master,slave,coeff_cpmL,coeff_cpmP);
