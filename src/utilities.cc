@@ -26,7 +26,7 @@
  * $Author: kampes $                                            *
  *                                                              *
  * implementation of utility routines.                          *
- * - math utils                                                 * 
+ * - math utils                                                 *
  * - solving small linear system                                *
  * - polynomial evaluation                                      *
  * - getorb call                                                *
@@ -48,7 +48,7 @@
 #include <cmath>                        // sqrt etc.
 #include <cstdio>                       // some compilers, remove function
 #include <ctime>                        // time functions
-char *strptime(const char *s, const char  *format,  struct tm *tm);        
+char *strptime(const char *s, const char  *format,  struct tm *tm);
 
 
 
@@ -124,7 +124,7 @@ void getorb(
   tijdstart.tm_hour =  t1seconds / 3600;
   tijdstart.tm_min  = (t1seconds-3600*tijdstart.tm_hour) / 60;
   tijdstart.tm_sec  = (t1seconds-3600*tijdstart.tm_hour) % 60;
-  DEBUG << "start time: tm struct: hour=" << tijdstart.tm_hour 
+  DEBUG << "start time: tm struct: hour=" << tijdstart.tm_hour
         << "; min=" << tijdstart.tm_min << "; sec=" << tijdstart.tm_sec;
   DEBUG.print();
 
@@ -137,7 +137,7 @@ void getorb(
   tijdend.tm_hour =  t2seconds / 3600;
   tijdend.tm_min  = (t2seconds-3600*tijdend.tm_hour) / 60;
   tijdend.tm_sec  = (t2seconds-3600*tijdend.tm_hour) % 60;
-  DEBUG << "end time: tm struct: hour=" << tijdend.tm_hour 
+  DEBUG << "end time: tm struct: hour=" << tijdend.tm_hour
         << "; min=" << tijdend.tm_min << "; sec=" << tijdend.tm_sec;
   DEBUG.print();
 
@@ -215,7 +215,7 @@ void getorb(
         scratchorbit.getline(dummyline,2*ONE27,'\n');
         }
       scratchorbit.close();
-      if (getorbok) 
+      if (getorbok)
         {
         PROGRESS.print("getorb: program finished ok.");
         break;  // break try few times
@@ -245,7 +245,7 @@ void getorb(
       PRINT_ERROR("code 905: getorb: exit(3): too many records.")
       throw(some_error);
       }
-    else 
+    else
       {
       WARNING.print(strgetorb);
       ERROR << "code 905: utilities.c: getorb: unknown exit code: " << status;
@@ -278,7 +278,7 @@ void convertgetorbout(
         const char* file)                               // default=scratchorbit
   {
   TRACE_FUNCTION("convertgetorbout (BK 11-Dec-1998)")
-  if (FILEID != MASTERID && FILEID!=SLAVEID) 
+  if (FILEID != MASTERID && FILEID!=SLAVEID)
     {
     PRINT_ERROR("fileid not ok.")
     throw(some_error);
@@ -310,7 +310,7 @@ void convertgetorbout(
     {
     infile >> sec >> err >> fie >> lam >> hei >> x >> y >> z;
     infile.getline(dummyline,2*ONE27,'\n');
-    DEBUG  << "scratchfile: sec=" << sec << " err=" << err 
+    DEBUG  << "scratchfile: sec=" << sec << " err=" << err
           << " x=" << x << " y=" << y << " z=" << z;
     DEBUG.print();
     if (err!=0) numerr++;
@@ -324,12 +324,12 @@ void convertgetorbout(
   if (numerr==0) INFO.print();
   if (numerr>0)  WARNING.print(INFO.get_str());
   if ( numdatapoints == -1 )  // [MA] -1 --> no good pts]
-    { 
-     //WARNING.print(INFO.get_str()); 
+    {
+     //WARNING.print(INFO.get_str());
      infile.close();
      if (remove("scratchdatapoints"))                                     // remove scratchdatapoints but keep scratchorbit
        WARNING.print("code 101: could not remove file.");
-     ERROR << "No valid number of orbit ephemeris found! exiting..."; 
+     ERROR << "No valid number of orbit ephemeris found! exiting...";
      PRINT_ERROR(ERROR.get_str())
      throw(some_error);
     }
@@ -361,14 +361,14 @@ void convertgetorbout(
     {
     infile >> sec >> err >> fie >> lam >> hei >> x >> y >> z;
     infile.getline(dummyline,2*ONE27,'\n');               // go to next line
-    DEBUG  << "scratchfile2: sec=" << sec << " err=" << err 
+    DEBUG  << "scratchfile2: sec=" << sec << " err=" << err
           << " x=" << x << " y=" << y << " z=" << z;
     DEBUG.print();
 
     // ______Convert time sec85 to sec of day______
     secint  = int32(sec)%86400;                         // 60*60*24 integer part
-    secfrac = sec - int32(sec);                         // fractional part 
-    if (err!=0) 
+    secfrac = sec - int32(sec);                         // fractional part
+    if (err!=0)
       {
       WARNING << "err == "<< err << " " << "err!=0: something went wrong in getorb? (skipping point)";
       WARNING.print();
@@ -434,7 +434,7 @@ void solve33(
     throw(input_error);
     }
 #endif
-   
+
   // ______  real8 L10, L20, L21: used lower matrix elements
   // ______  real8 U11, U12, U22: used upper matrix elements
   // ______  real8 b0,  b1,  b2:  used Ux=b
@@ -444,12 +444,12 @@ void solve33(
   const real8 L21 = (A(2,1)-(A(0,1)*L20))/U11;
   const real8 U12 =  A(1,2)-L10*A(0,2);
   const real8 U22 =  A(2,2)-L20*A(0,2)-L21*U12;
-   
+
   // ______ Solution: forward substitution ______
   const real8 b0  =  rhs(0,0);
   const real8 b1  =  rhs(1,0)-b0*L10;
   const real8 b2  =  rhs(2,0)-b0*L20-b1*L21;
-   
+
   // ______ Solution: backwards substitution ______
   RESULT(2,0)     =  b2/U22;
   RESULT(1,0)     = (b1-U12*RESULT(2,0))/U11;
@@ -515,13 +515,13 @@ matrix<real8> solve22(
  #%// BK 16-Apr-2002                                            *
  ****************************************************************/
 uint nextpow2(
-        real8 w)        
+        real8 w)
   {
   TRACE_FUNCTION("nextpow2 (BK 03-Feb-1999)")
-  int32 b    = 0; 
+  int32 b    = 0;
   int32 *pnt = &b;
   real8 f    = frexp(w,pnt);
-  if (f==0.5) 
+  if (f==0.5)
     return uint(w);
   return (uint(pow(real8(2),b)));
   } // END nextpow2
@@ -667,7 +667,7 @@ real8 polyval(
       }
     }
 
-  return sum;  
+  return sum;
   } // END polyval
 
 
@@ -729,6 +729,24 @@ real8 polyval(
             + coeff(4,0) * x*y
             + coeff(5,0) * sqr(y) );
     }
+
+  else if (degreee == 22)
+  {
+  sum += (  coeff(1,0) * x
+          + coeff(2,0) * y
+          + coeff(3,0) * sqr(x)
+          + coeff(4,0) * x*y
+          + coeff(5,0) * sqr(y) );
+      // ______ YQ debug ______
+  DEBUG << "Check Correctness: ["
+        << coeff(1,0) << " " << x << " " << coeff(1,0) * x << " "
+        << coeff(2,0) << " " << y << " " << coeff(2,0) * y << " "
+        << coeff(3,0) << " " << sqr(x) << " " << coeff(3,0) * sqr(x) << " "
+        << coeff(4,0) << " " << x*y << " " << coeff(4,0) * x*y << " "
+        << coeff(5,0) << " " << sqr(y) << " " << coeff(5,0) * sqr(y)  << " "
+        << sum << "]";
+  DEBUG.print();
+  }
 
   else if (degreee == 3)
     {
@@ -810,13 +828,13 @@ real8 polyval(
         }
       }
     }
-  return sum;  
+  return sum;
   } // END polyval
 
 
-// MA explicit instantiation: w/o these two linesr, whole function needs to go to utilities.hh 
+// MA explicit instantiation: w/o these two linesr, whole function needs to go to utilities.hh
 template matrix<real4> polyval<real4>( const matrix<real4>&, const matrix<real4>&, const matrix<real8>&, int32 );
-template matrix<real8> polyval<real8>( const matrix<real4>&, const matrix<real4>&, const matrix<real8>&, int32 ); 
+template matrix<real8> polyval<real8>( const matrix<real4>&, const matrix<real4>&, const matrix<real8>&, int32 );
 
 /****************************************************************
  *    polyval                                                   *
@@ -933,10 +951,10 @@ matrix<Type> polyval(
           for (i=0; i<Result.lines(); i++)
             {
             Type x1 = x(i,0);
-            Result(i,j) =  c00pc01y1 
-                         + c10   * x1 
-                         + c20   * sqr(x1) 
-                         + c11y1 * x1 
+            Result(i,j) =  c00pc01y1
+                         + c10   * x1
+                         + c20   * sqr(x1)
+                         + c11y1 * x1
                          + c02y2;
             }
           }
@@ -967,10 +985,10 @@ matrix<Type> polyval(
             {
             Type x1 = x(i,0);
             Type x2 = sqr(x1);
-            Result(i,j) =  c00pc01y1 
-                         + c10   * x1 
-                         + c20   * x2 
-                         + c11y1 * x1 
+            Result(i,j) =  c00pc01y1
+                         + c10   * x1
+                         + c20   * x2
+                         + c11y1 * x1
                          + c02y2
                          + c30   * x1 * x2
                          + c21y1 * x2
@@ -1014,10 +1032,10 @@ matrix<Type> polyval(
             {
             Type x1 = x(i,0);
             Type x2 = sqr(x1);
-            Result(i,j) =  c00pc01y1 
-                         + c10   * x1 
-                         + c20   * x2 
-                         + c11y1 * x1 
+            Result(i,j) =  c00pc01y1
+                         + c10   * x1
+                         + c20   * x2
+                         + c11y1 * x1
                          + c02y2
                          + c30   * x1 * x2
                          + c21y1 * x2
@@ -1079,10 +1097,10 @@ matrix<Type> polyval(
             Type x1 = x(i,0);
             Type x2 = sqr(x1);
             Type x3 = x1*x2;
-            Result(i,j) =  c00pc01y1 
-                         + c10   * x1 
-                         + c20   * x2 
-                         + c11y1 * x1 
+            Result(i,j) =  c00pc01y1
+                         + c10   * x1
+                         + c20   * x2
+                         + c11y1 * x1
                          + c02y2
                          + c30   * x3
                          + c21y1 * x2
@@ -1151,10 +1169,10 @@ matrix<Type> polyval(
             Type x1 = x(i,0);
             Type x2 = sqr(x1);
             Type x3 = x1*x2;
-            Result(i,j) =  c00pc01y1 
-                         + c10   * x1 
-                         + c20   * x2 
-                         + c11y1 * x1 
+            Result(i,j) =  c00pc01y1
+                         + c10   * x1
+                         + c20   * x2
+                         + c11y1 * x1
                          + c02y2
                          + c30   * x3
                          + c21y1 * x2
@@ -1195,7 +1213,7 @@ WARNING.print("polyval on grid for > degree 5 : this seems to be wrong ?? BK 9 f
             coeffindex++;
             }
           }
-        Result(i,j) += sum;  
+        Result(i,j) += sum;
         }
       }
     } // switch degreee
@@ -1475,7 +1493,7 @@ void BalphaBhBvBparBperpTheta(
   Bperp = (costheta1>costheta2) ?               // perpendicular bln, sign ok
     -sqrt(B_2-sqr(Bpar)) :
      sqrt(B_2-sqr(Bpar));
-    
+
   theta = acos(costheta1);                      // <0,pi/2>, ok
   alpha = theta-atan2(Bpar,Bperp);              // <-pi,pi>
   B     = sqrt(B_2);                            // abs. value
@@ -1513,7 +1531,7 @@ void BalphaBhBvBparBperpTheta(
  * approximation is used. If fDC is smaller then 2 percent of   *
  * PRF then no shifting is performed.                           *
  * memory intensive cause matrix is used.                       *
- *                                                              * 
+ *                                                              *
  #%// BK 09-Nov-2000                                            *
  * this is not ok for ovs data *
  #%// BK 12-Aug-2005                                            *
@@ -1531,7 +1549,7 @@ void shiftazispectrum(
   // ______ Evaluate fdc for all columns ______
   if (slcinfo.f_DC_a0==0 && slcinfo.f_DC_a1==0 && slcinfo.f_DC_a2==0) // no shift at all
     return;
-  
+
   // ______ Some constants ______
   const int32 NLINES = data.lines();            // compute e^ix
   const int32 NCOLS  = data.pixels();           // width
@@ -1594,13 +1612,13 @@ void shiftazispectrum(
   cerr << "REALLYDEBUG: matrix data dumped to file " << OFILE << " (cr4).\n";
   cerr << "#lines, #pixs: " << data.lines() << ", " << data.pixels() << endl;
   ofstream of;
-  of.open(OFILE); 
+  of.open(OFILE);
   of << data;
   of.close();
   tmpomem.seekp(0);
   tmpomem << "TREND." << si_buffernum << ends;
   cerr << "REALLYDEBUG: trend matrix dumped to file " << OFILE << " (cr4).\n";
-  of.open(OFILE); 
+  of.open(OFILE);
   of << TREND;
   of.close();
   #endif
@@ -1611,7 +1629,7 @@ void shiftazispectrum(
   tmpomem.seekp(0);
   tmpomem << "dataout." << si_buffernum << ends;
   cerr << "REALLYDEBUG: matrix data dumped to file " << OFILE << " (cr4).\n";
-  of.open(OFILE); 
+  of.open(OFILE);
   of << data;
   of.close();
   #endif
@@ -1676,7 +1694,7 @@ void tiepoint(
   real8 tiepointphi    = deg2rad(generalinput.tiepoint.x);// lat in [dec.degrees]
   real8 tiepointlambda = deg2rad(generalinput.tiepoint.y);// lon in [dec.degrees]
   real8 tiepointheight = generalinput.tiepoint.z;//          height in [m]
-  DEBUG << "TIEPOINT: lat/lon/hei [rad/rad/m]: " 
+  DEBUG << "TIEPOINT: lat/lon/hei [rad/rad/m]: "
         << tiepointphi << " " << tiepointlambda << " " << tiepointheight;
   DEBUG.print();
   //cn tiepointpos;// compute phi/lambda/h-->x,y,z
@@ -1731,7 +1749,7 @@ void tiepoint(
     DEBUG.print();
     DEBUG << "TIEPOINT slave range time:         " << s_trange;
     DEBUG.print();
-    INFO  << "TIEPOINT line/pix in slave:        " 
+    INFO  << "TIEPOINT line/pix in slave:        "
          << slave.ta2line(s_aztime) << " "
          << slave.tr2pix (s_trange);
     INFO.print();
@@ -1741,7 +1759,7 @@ void tiepoint(
     INFO << "TIEPOINT unwrapped phase (incl. reference phase): "
          << phase << " [rad]";
     INFO.print();
-  
+
     // _____ Times for slave image ______
     real8 s_tazi_ref;                               // returned
     real8 s_trange_ref;                             // returned
@@ -1775,7 +1793,7 @@ void tiepoint(
     // ______ master: from M to P_ref_checkM ____
     cn P_ref_checkM;
     n_iter     = lp2xyz(master.ta2line(t_az), master.tr2pix(t_rg),
-                    ellips, master, masterorbit, 
+                    ellips, master, masterorbit,
                     P_ref_checkM, MAXITER, CRITERPOS);
     // ______ slave: from P_ref to S ____
     n_iter     = xyz2t(t_az,t_rg,slave, slaveorbit, P_ref,MAXITER,CRITERTIM);// return t
@@ -1783,7 +1801,7 @@ void tiepoint(
     // ______ slave: from S to P_ref_checkS ____
     cn P_ref_checkS;
     n_iter     = lp2xyz(slave.ta2line(t_az), slave.tr2pix(t_rg),
-                    ellips, slave, slaveorbit, 
+                    ellips, slave, slaveorbit,
                     P_ref_checkS, MAXITER, CRITERPOS);
     // ______ finally back again from P_ref to slave and master ______
     cn M_check;
@@ -1830,7 +1848,7 @@ void tiepoint(
  *                                                              *
  * input:                                                       *
  *  - master info                                               *
- *  - simulated amplitude overall offsetL and offsetP           * 
+ *  - simulated amplitude overall offsetL and offsetP           *
  * output:                                                      *
  *  - master timing error in the azimuth and range direction    *
  *                                                              *
@@ -1846,8 +1864,8 @@ void offsets2timing(
         real8                 &rgTIME)
   {
   TRACE_FUNCTION("offsets2timing (MA 13-DEC-2008)")
-  
-  // switch INFO-->DEBUG when safe.  
+
+  // switch INFO-->DEBUG when safe.
   INFO << "The given azimuth timing offset: " << offsetL << " lines.";
   INFO.print();
   INFO << "The given   range timing offset: " << offsetP << " pixels.";
@@ -1857,8 +1875,8 @@ void offsets2timing(
   // TODO check if line pixel offsets are more than certian threshold ex: > 1000 in
   // lines > 200 in pixels
   // this should be a warning
-  
-  
+
+
   // ______ Initialize Variables ______
   const real8 &mPRF   =  slcinfo.prf   ;   // PRF  see slcimage.hh
   const real8 &mRSRx2 =  slcinfo.rsr2x ;   // 2xRSR
@@ -1868,9 +1886,9 @@ void offsets2timing(
   DEBUG.print();
   DEBUG     << "RSR: " << mRSRx2/2.0 ;
   DEBUG.print();
-  
+
   //slcinfo.showdata(); // debug
-  
+
   // ______ Compute Time ______
   azTIME  = real8( offsetL/mPRF   );   // Azimuth timing, in seconds
   rgTIME  = real8( offsetP/mRSRx2 );   // Range timing,   in seconds ( two-way)
@@ -1915,7 +1933,7 @@ void write_kml(
       double rotationNumerator=0;
       double rotationDenominator=0;
       One80overPi=180/PI;
-      char pngFilename[4*ONE27]; 
+      char pngFilename[4*ONE27];
       strcpy(pngFilename, filename);
       strcat(pngFilename,".png");
 	//corner 1 (l0,p0)
@@ -1924,11 +1942,11 @@ void write_kml(
       cornerLam*=One80overPi;
       DEBUG << "philamhei(l0,p0)= " << cornerPhi << ", " << cornerLam << ", " << cornerHei;
       DEBUG.print();
-      north+=cornerPhi;			//Image should flip or flop automatically.   
-      west+= cornerLam;	
+      north+=cornerPhi;			//Image should flip or flop automatically.
+      west+= cornerLam;
       rotationNumerator=cornerPhi;
       rotationDenominator=cornerLam;
-	//corner 2 (l0,pN)      
+	//corner 2 (l0,pN)
       lp2ell(input_dbow.linelo, input_dbow.pixhi, input_ellips, master, masterorbit, cornerPhi, cornerLam, cornerHei, 10, 1e-3);
       cornerPhi*=One80overPi;
       cornerLam*=One80overPi;
@@ -1954,14 +1972,14 @@ void write_kml(
       DEBUG.print();
       south+=cornerPhi;south/=2;	//south=[ phi(lN,p0)+phi(lN,pN) ]/2
       east+=cornerLam;east/=2;		//east= [ lam(l0,p0)+lam(lN,p0) ]/2
-            
+
       DEBUG << "GoogleEarth North/South/East/West: " << north << " / " << south << " / " << east << " / " << west;
       DEBUG.print();
-      
+
       rotation=-(90-atan2(rotationNumerator, rotationDenominator)*One80overPi);
       DEBUG << "GoogleEarth Rotation: " << rotation;
       DEBUG.print();
-      // Write output KML. 
+      // Write output KML.
 	//open output file
 	ofstream kmlfile;
 	openfstream(kmlfile, filename, true);
@@ -1974,7 +1992,7 @@ void write_kml(
         kmlfile << "                <north>" << north << "</north>" << endl;
         kmlfile << "                <south>" << south << "</south>" << endl;
         kmlfile << "                <east>" << east << "</east>" << endl;
-        kmlfile << "                <west>" << west << "</west>" << endl; 
+        kmlfile << "                <west>" << west << "</west>" << endl;
         kmlfile << "                <rotation>" << rotation << "</rotation>" << endl;
         kmlfile << "        </LatLonBox>" << endl;
         kmlfile << "        <Icon>" << endl;

@@ -5322,14 +5322,14 @@ void resample(
   const uint sizeofr4      = sizeof(real4); //[FvL]
 
   // ______ Normalize data for polynomial ______
- // const real8 minL         = master.originalwindow.linelo;
- // const real8 maxL         = master.originalwindow.linehi;
- // const real8 minP         = master.originalwindow.pixlo;
- // const real8 maxP         = master.originalwindow.pixhi;
-  const real8 minL           = minMaxL(0,0);
-  const real8 maxL           = minMaxL(1,0);
-  const real8 minP           = minMaxP(0,0);
-  const real8 maxP           = minMaxP(1,0);
+ const real8 minL         = master.originalwindow.linelo;
+ const real8 maxL         = master.originalwindow.linehi;
+ const real8 minP         = master.originalwindow.pixlo;
+ const real8 maxP         = master.originalwindow.pixhi;
+  // const real8 minL           = minMaxL(0,0);
+  // const real8 maxL           = minMaxL(1,0);
+  // const real8 minP           = minMaxP(0,0);
+  // const real8 maxP           = minMaxP(1,0);  // This is so fucking WRONG!
 
   INFO << "resample: polynomial normalized by factors: "
        << minL << " " << maxL << " " << minP << " " << maxP << " to [-2,2]";

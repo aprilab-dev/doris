@@ -596,7 +596,7 @@ int main(
 
     master.fillslcimage(input_general.m_resfile);
     interferogram.win = master.currentwindow;
-    
+
     INFO<<"\n window : " << interferogram.win.linelo << ","
                  << interferogram.win.linehi << ","
                  << interferogram.win.pixlo << ","
@@ -933,7 +933,7 @@ int main(
     strcpy(SECTIONID,"*_Start_");
     strcat(SECTIONID,processcontrol[pr_m_crop]);
     master.updateslcimage(input_general.m_resfile,SECTIONID);
-    
+
     // update interferogram windows after cropping
     interferogram.win = master.currentwindow;
     INFO<<"\n window : " << interferogram.win.linelo << ","
