@@ -1624,7 +1624,7 @@ void readinput(
         s_readfilesinput.sensor_id=SLC_ALOS2;
       else if (!strcmp(keyword,"GF3"))               // GF3 [YQ]
         s_readfilesinput.sensor_id=SLC_GF3;
-      else if (!strcmp(keyword,"chaohu-1"))               // FC1 [YQ]
+      else if (!strcmp(keyword,"FC1"))               // FC1 [YQ]
         s_readfilesinput.sensor_id=SLC_FC1;
       else if (!strcmp(keyword,"TSX"))               // TSX [PM]
         s_readfilesinput.sensor_id=SLC_TSX;

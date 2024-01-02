@@ -203,6 +203,8 @@ class FC1:
         )
 
         container["Dataformat"] = "HDF5"
+        container["Product type specifier"] = "FC1"
+        container["Sensor platform mission identifer"] = "FC1"
 
         self.meta.update(container)
 
