@@ -13,7 +13,6 @@ import numpy as np
 from datetime import datetime
 from SarSpectrum import SarSpectrum
 
-
 def fc1_to_data(
     filein: str,
     fileout: str,
@@ -30,12 +29,12 @@ def fc1_to_data(
     with h5py.File(filein, 'r') as f, open(fileout, "wb") as fout:
 
         l0 = l0 or 1
-        ln = ln or f["number_of_azimuth_samples"][()]
+        ln = ln or f["number_of_azimuth_samples"][()] # type: ignore
         p0 = p0 or 1
-        pn = pn or f["number_of_range_samples"][()]
+        pn = pn or f["number_of_range_samples"][()] # type: ignore
 
-        cdata_i = f["s_i"][:]
-        cdata_q = f["s_q"][:]
+        cdata_i:np.ndarray = f["s_i"][:]  # type: ignore
+        cdata_q:np.ndarray = f["s_q"][:]  # type: ignore
 
         for line in range(l0 - 1, ln):
             cdata = np.empty((pn - p0 + 1) * 2, dtype="<i2")
@@ -46,7 +45,7 @@ def fc1_to_data(
     return ln - l0 + 1, pn - p0 + 1
 
 
-def fc1_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
+def fc1_to_res(resFile: str, l0: int, ln: int, p0: int, pn: int) -> bool:
 
     fileout = "test.slc"
 
@@ -64,9 +63,9 @@ def fc1_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
     outStream.write("Data_output_format: 			complex_short\n")
 
     outStream.write("First_line (w.r.t. original_image): 	%s\n" % l0)
-    outStream.write("Last_line (w.r.t. original_image): 	%s\n" % lN)
+    outStream.write("Last_line (w.r.t. original_image): 	%s\n" % ln)
     outStream.write("First_pixel (w.r.t. original_image): 	%s\n" % p0)
-    outStream.write("Last_pixel (w.r.t. original_image): 	%s\n" % pN)
+    outStream.write("Last_pixel (w.r.t. original_image): 	%s\n" % pn)
 
     outStream.write("**************************************************\n")
     outStream.write("* End_crop:_NORMAL\n")
@@ -94,14 +93,14 @@ def fc1_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 def fc1_dump_data_usage():
     """A general help message for fc1_dump_data.py"""
     print(
-        "\nUsage: python3 gf3_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
+        "\nUsage: python3 gf3_dump_data_usage.py inputfile outputfile l0 ln p0 pn"
     )
     print("  where inputfile        is the input filename")
     print("        outputfile       is the output filename")
     print("        l0               is the first azimuth line (starting at 1)")
-    print("        lN               is the last azimuth line")
+    print("        ln               is the last azimuth line")
     print("        p0               is the first range pixel (starting at 1)")
-    print("        pN               is the last range pixel")
+    print("        pn               is the last range pixel")
 
 
 if __name__ == "__main__":
