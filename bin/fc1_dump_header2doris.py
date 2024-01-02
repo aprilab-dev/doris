@@ -95,7 +95,7 @@ class FC1:
         query_list: dict = {
             # volume info
             "Volume file": self.meta["path"],
-            "Volume_ID": "product_type",
+            "Volume_ID": self.meta["path"],
             "Volume_identifier": "product_name",
             "Volume_set_identifier": "acquisition_id",
             # mission info
@@ -119,9 +119,7 @@ class FC1:
             "Pulse_Repetition_Frequency (computed, Hz)": "processing_prf",
             "Total_azimuth_band_width (Hz)": "total_processed_bandwidth_azimuth",
             "Weighting_azimuth": "window_function_azimuth",
-            # "Xtrack_f_DC_constant (Hz, early edge)": "Doppler_Centroid_Coefficients//dc_coefficients_list//d0",
-            # "Xtrack_f_DC_linear (Hz/s, early edge)": "processinfo//DopplerCentroidCoefficients//d1",
-            # "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": "processinfo//DopplerCentroidCoefficients//d2",
+            "DC_Estimate_Coeffs": "dc_estimate_coeffs",
             "Range_time_to_first_pixel (2way) (ms)": "first_pixel_time",
             "Range_sampling_rate (computed, MHz)": "range_sampling_rate",
             "Total_range_band_width (MHz)": "chirp_bandwidth",
@@ -136,6 +134,8 @@ class FC1:
             "Orbit X": "posX",
             "Orbit Y": "posY",
             "Orbit Z": "posZ",
+            # Look Side
+            "Look Side": "look_side",
         }
 
         # get variables and parameters from xml
@@ -158,7 +158,6 @@ class FC1:
         container["Scene_centre_longitude"]= container["Scene_centre"][3]
 
         container["Orbit_n_pts"] = len(container["Orbit Time"])
-        container["Volume_set_identifier"] = "DUMMY"
         container["Scene identification"] = (
             "Orbit: "
             + str(container["Orbit"])  # this doesn't mean anything at this moment.
@@ -178,9 +177,19 @@ class FC1:
         )
 
         # correct two way slant range time
-        container["Range_time_to_first_pixel (2way) (ms)"] = (  # us to ms
-            2000 * float(container["Range_time_to_first_pixel (2way) (ms)"]) / SPEED_OF_LIGHT
+        container["Range_time_to_first_pixel (2way) (ms)"] = (
+            1000 * float(container["Range_time_to_first_pixel (2way) (ms)"])
         )
+
+        container["Range_sampling_rate (computed, MHz)"] = container["Range_sampling_rate (computed, MHz)"] / 1e6
+        container["Total_range_band_width (MHz)"] = container["Total_range_band_width (MHz)"] / 1e6
+
+        container["Radar_wavelength (m)"] = SPEED_OF_LIGHT / container["Radar_wavelength (m)"]
+
+        # Doppler
+        container["Xtrack_f_DC_constant (Hz, early edge)"] = container["DC_Estimate_Coeffs"][0][0]
+        container["Xtrack_f_DC_linear (Hz/s, early edge)"] = container["DC_Estimate_Coeffs"][0][1]
+        container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"]= container["DC_Estimate_Coeffs"][0][2]
 
         # update the time format
         container["First_pixel_azimuth_time (UTC)"] = (
@@ -192,6 +201,8 @@ class FC1:
                 "%d-%b-%Y %H:%M:%S.%f"
             )
         )
+
+        container["Dataformat"] = "HDF5"
 
         self.meta.update(container)
 
@@ -236,7 +247,7 @@ class FC1:
             "Number_of_pixels_original",
         )
 
-        print("\ngf3_dump_header2doris.py v1,0, doris software, 2021\n")
+        print("\nfc1_dump_header2doris.py v1,0, doris software, 2021\n")
         print("**************************************************************")
         print("*_Start_readfiles:")
         print("**************************************************************")
@@ -274,7 +285,7 @@ class FC1:
 
             print(
                 " {:>7} {:>15} {:>15} {:>15}".format(
-                    hms2sec(self.meta["Orbit Time"][i]), x, y, z
+                    hms2sec(self.meta["Orbit Time"][i][0].decode()), x, y, z
                 )
             )
 
@@ -286,10 +297,10 @@ class FC1:
     @staticmethod
     def usage() -> None:
         """A quick guide of how to call the script."""
-        print("INFO    : @(#)GaoFen3 for Doris, Author: Yuxiao")
+        print("INFO    : @(#)FC1 for Doris, Author: Yuxiao")
         print("\n")
-        print("Usage   : python gf3_dump_header2doris.py metafile")  # nopep8
-        print("          - `metafile` is the GF3 meta file in xml format.")
+        print("Usage   : python fc1_dump_header2doris.py metafile")  # nopep8
+        print("          - `metafile` is the FC1 meta file in xml format.")
         print("\n")
         print("This software is part of Doris InSAR software package.\n")
 
@@ -310,5 +321,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     fc1.meta["path"] = meta_file
-    # fc1.read_meta().export2res()
-    fc1.read_meta()
+    fc1.read_meta().export2res()
+    # fc1.read_meta()
