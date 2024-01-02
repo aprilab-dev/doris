@@ -107,12 +107,12 @@ class SarSpectrum:
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
-        if plot_option is 'abs':
+        if plot_option == 'abs':
             # plot the amplitude
             plt.imshow(np.absolute(self.sar_array)/self.norm, vmax=3)
             ax.set_title('Amplitude of SAR Imagery')
 
-        elif plot_option is 'phase':
+        elif plot_option == 'phase':
             # plot the phase
             plt.imshow(np.angle(self.sar_array))
             ax.set_title('Phase of SAR Imagery')
@@ -126,7 +126,7 @@ class SarSpectrum:
     def quicklook(self, outfile: str = 'quicklook.png', decimate: int = 1):
         quicklook = self.sar_array[::decimate, ::decimate]  # type: ignore
         img.imsave(outfile, np.abs(quicklook) * decimate / self.norm,
-                   vmin=0, vmax=3)
+                   vmin=0, vmax=10)
 
     def spectrum(self, direction='2d'):
         """
@@ -144,7 +144,7 @@ class SarSpectrum:
         tick_label[tick_label.index("0.")] = '0'  # change '0.' to '0'
 
         # 2D FFT
-        if direction is '2d':
+        if direction == '2d':
             # perform fft
             spectra = np.fft.fft2(self.sar_array)
             spectra = np.fft.fftshift(spectra)
@@ -167,19 +167,19 @@ class SarSpectrum:
             plt.show()
 
         else:
-            if direction is 'azimuth':
+            if direction == 'azimuth':
                 spectra_1d = np.zeros(self.line)
                 i_total = self.sample
 
-            elif direction is 'range':
+            elif direction == 'range':
                 spectra_1d = np.zeros(self.sample)
                 i_total = self.line
 
             # Calculate Average Specturm
             for m in range(0, i_total):
-                if direction is 'azimuth':
+                if direction == 'azimuth':
                     spectra = np.fft.fft(self.sar_array[m, :])
-                elif direction is 'range':
+                elif direction == 'range':
                     spectra = np.fft.fft(self.sar_array[:, m])
 
                 spectra = np.absolute(np.fft.fftshift(spectra))
@@ -190,12 +190,12 @@ class SarSpectrum:
             fig = plt.figure()
             ax = fig.add_subplot(111)
             # noinspection PyUnboundLocalVariable
-            if direction is 'azimuth':
+            if direction == 'azimuth':
                 plt.plot(np.arange(0, self.line), spectra_1d)
                 ax.set_title('Averaged Azimuth Spectrum of target SAR')
                 ax.set_xlabel('Normalized azimuth frequency')
                 ax.set_xticks(np.linspace(0, self.line, 11))
-            elif direction is 'range':
+            elif direction == 'range':
                 plt.plot(np.arange(0, self.sample), spectra_1d)
                 ax.set_title('Averaged Range Spectrum of target SAR')
                 ax.set_xlabel('Normalized range frequency')
@@ -223,33 +223,33 @@ class SarSpectrum:
         """
 
         # Check the input
-        if direction is 'azimuth':
+        if direction == 'azimuth':
             if fft_size > self.sample:
                 raise ValueError('SarSpectrum.spectrogram(): '
                                  'fft_size is %d and is greater than the '
                                  'sample length (%d) of your SAR image! '
                                  % (fft_size, self.sample))
-        elif direction is 'range':
+        elif direction == 'range':
             if fft_size > self.line:
                 raise ValueError('SarSpectrum.spectrogram(): '
                                  'fft_size is %d and is greater than the line '
                                  'length (%d) of your SAR image! '
                                  % (fft_size, self.sample))
 
-        elif direction is 'range':
+        elif direction == 'range':
             i_total = self.line
 
         # Calculate Average Specturm
-        if direction is 'azimuth':
+        if direction == 'azimuth':
             i_total = self.sample
 
-        elif direction is 'range':
+        elif direction == 'range':
             i_total = self.line
 
         for m in range(0, i_total, sampling):
-            if direction is 'azimuth':
+            if direction == 'azimuth':
                 cdata_tmp = self.sar_array[m, :]
-            elif direction is 'range':
+            elif direction == 'range':
                 cdata_tmp = self.sar_array[:, m]
 
             # Calculate Spectrogram
@@ -270,12 +270,12 @@ class SarSpectrum:
         fig = plt.figure(direction)
         ax = fig.add_subplot(111)
         cax = plt.imshow(np.absolute(spectro))
-        if direction is 'azimuth':
+        if direction == 'azimuth':
             ax.set_title('Average Azimuth Spectrogram of target SAR')
             ax.set_xlabel('Azimuth [steps: %d]' % step)
             tick_label = [str(int(i)) for i in np.linspace(fft_size,
                                                            self.line, 7)]
-        elif direction is 'range':
+        elif direction == 'range':
             ax.set_title('Average Range Spectrogram of target SAR')
             ax.set_xlabel('Range [steps: %d]' % step)
             tick_label = [str(int(i)) for i in np.linspace(fft_size,

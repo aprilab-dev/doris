@@ -8,56 +8,45 @@ with open(activate_venv_path) as f:
 
 import os
 import sys
-import warnings
-import rasterio
+import h5py
 import numpy as np
 from datetime import datetime
-
-"""
-GF3_DUMP_DATA() reads the GF3 format SLC data, and write to disk the
-DORIS-compatale binary format for DORIS processing.
-"""
-
-# suppress NotGeoreferencedWarning
-warnings.filterwarnings(
-    "ignore", category=rasterio.errors.NotGeoreferencedWarning)  # type: ignore
+from SarSpectrum import SarSpectrum
 
 
-def gf3_to_data(
+def fc1_to_data(
     filein: str,
     fileout: str,
-    l0: int = None,
-    lN: int = None,
-    p0: int = None,
-    pN: int = None,
+    l0: int = 0,
+    ln: int = 0,
+    p0: int = 0,
+    pn: int = 0,
 ) -> tuple:
+    """Read TY FC1 SLC data. """
 
     if not os.path.exists(filein):
-        raise FileNotFoundError("File {} not found!".format(filein))
+        raise FileNotFoundError(f"File {filein} not found!")
 
-    with rasterio.open(filein) as src:
-        w = src.read()
+    with h5py.File(filein, 'r') as f, open(fileout, "wb") as fout:
 
-    if l0 is None:
-        l0 = 1
-    if lN is None:
-        lN = src.height
-    if p0 is None:
-        p0 = 1
-    if pN is None:
-        pN = src.width
+        l0 = l0 or 1
+        ln = ln or f["number_of_azimuth_samples"][()]
+        p0 = p0 or 1
+        pn = pn or f["number_of_range_samples"][()]
 
-    with open(fileout, "wb") as fout:
-        for ln in range(l0 - 1, lN):
-            cdata = np.empty((pN - p0 + 1) * 2, dtype="<i2")
-            cdata[0::2] = w[0, ln, p0 - 1: pN]
-            cdata[1::2] = w[1, ln, p0 - 1: pN]
+        cdata_i = f["s_i"][:]
+        cdata_q = f["s_q"][:]
+
+        for line in range(l0 - 1, ln):
+            cdata = np.empty((pn - p0 + 1) * 2, dtype="<i2")
+            cdata[0::2] = cdata_i[line, p0 - 1: pn]
+            cdata[1::2] = cdata_q[line, p0 - 1: pn]
             cdata.tofile(fout)
 
-    return lN - l0 + 1, pN - p0 + 1
+    return ln - l0 + 1, pn - p0 + 1
 
 
-def gf3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
+def fc1_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 
     fileout = "test.slc"
 
@@ -102,10 +91,11 @@ def gf3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
     return True
 
 
-def gf3_dump_data_usage():
+def fc1_dump_data_usage():
+    """A general help message for fc1_dump_data.py"""
     print(
         "\nUsage: python3 gf3_dump_data_usage.py inputfile outputfile l0 lN p0 pN"
-    )  # nopep8
+    )
     print("  where inputfile        is the input filename")
     print("        outputfile       is the output filename")
     print("        l0               is the first azimuth line (starting at 1)")
@@ -116,38 +106,34 @@ def gf3_dump_data_usage():
 
 if __name__ == "__main__":
     try:
-        filein = sys.argv[1]
-        fileout = sys.argv[2]
-    except Exception:
+        fin = sys.argv[1]
+        fout = sys.argv[2]
+    except IndexError:
         print("\nError   : Unrecognized input or missing arguments!\n\n")
-        gf3_dump_data_usage()
+        fc1_dump_data_usage()
         sys.exit(1)
 
     if len(sys.argv) == 3:
-        l0, lN, p0, pN = None, None, None, None  # type:ignore
+        lstart, lend, pstart, pend = 0, 0, 0, 0
     elif len(sys.argv) == 7:
-        l0 = int(sys.argv[3])
-        lN = int(sys.argv[4])
-        p0 = int(sys.argv[5])
-        pN = int(sys.argv[6])
+        lstart = int(sys.argv[3])
+        lend = int(sys.argv[4])
+        pstart = int(sys.argv[5])
+        pend = int(sys.argv[6])
     else:
         print("\nError   : Unrecognized input or wrong arguments!\n\n")
-        gf3_dump_data_usage()
+        fc1_dump_data_usage()
         sys.exit(1)
 
     # locate & read ALOS2 file
-    az_lines, ra_samples = gf3_to_data(filein, fileout, l0, lN, p0, pN)
+    az_lines, ra_samples = fc1_to_data(fin, fout, lstart, lend, pstart, pend)
+
 
     # plot & export quicklook
     sys.stdout.write("Exporting quicklook...")
-    if l0 is None and lN is None and p0 is None and pN is None:
-        l0: int = 1
-        lN: int = az_lines
-        p0: int = 1
-        pN: int = ra_samples
 
     # quicklook
-    sar_array = SarSpectrum(fileout, pN - p0 + 1, lN - l0 + 1)
-    sar_array.read_sar((1, pN - p0 + 1), (1, lN - l0 + 1))
-    sar_array.quicklook(fileout + '.png', decimate=10)
+    sar_array = SarSpectrum(fout, ra_samples, az_lines)
+    sar_array.read_sar((1, ra_samples), (1, az_lines))
+    sar_array.quicklook(fout + '.png', decimate=10)
     sys.stdout.write(" Done.\n")
