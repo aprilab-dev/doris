@@ -43,7 +43,7 @@
 SHELL   = /bin/sh
 
 ### Specify compiler/installation directory ###
-INSTALLDIR = /home/yuxiao/.local/bin
+INSTALLDIR = /usr/local/bin
 CC	   = g++
 SCRIPTSDIR = ../bin
 
@@ -59,7 +59,7 @@ DEF5    = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE #  -5
 #
 ### Do not change following 2, simply comment DEF1-8 above
 DEFSDEBUG 	= $(DEF1) $(DEF2) $(DEF3)
-DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I/home/yuxiao/Develop/doris/fftw-3.3.9/include
+DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I/home/yuxiao/Develop/sophia/doris/fftw-3.3.9/include
 
 ### NOTE ###
 # If you get warnings like the following (I got them with g++, not with aCC)
@@ -93,7 +93,7 @@ CFLAGS 	= $(CFLAGSOPT)
 ### Library locations flag ###
 ### -lcl : used for veclib 
 ### -lm  : used for fftw
-LFLAGS  =   -L/home/yuxiao/Develop/doris/fftw-3.3.9/lib -lfftw3f -lm
+LFLAGS  =   -L/home/yuxiao/Develop/sophia/doris/fftw-3.3.9/lib -lfftw3f -lm
 
 
 #####################################################
