@@ -36,11 +36,18 @@ def fc1_to_data(
         cdata_i:np.ndarray = f["s_i"][:]  # type: ignore
         cdata_q:np.ndarray = f["s_q"][:]  # type: ignore
 
-        for line in range(l0 - 1, ln):
-            cdata = np.empty((pn - p0 + 1) * 2, dtype="<i2")
-            cdata[0::2] = cdata_i[line, p0 - 1: pn]
-            cdata[1::2] = cdata_q[line, p0 - 1: pn]
-            cdata.tofile(fout)
+        if f["look_side"][()].decode() =="left":  # inverse the read sequence
+            for line in reversed(range(l0 - 1, ln)):
+                cdata = np.empty((pn - p0 + 1) * 2, dtype="<i2")
+                cdata[0::2] = cdata_i[line, p0 - 1: pn]
+                cdata[1::2] = cdata_q[line, p0 - 1: pn]
+                cdata.tofile(fout)
+        else:
+            for line in range(l0 - 1, ln):
+                cdata = np.empty((pn - p0 + 1) * 2, dtype="<i2")
+                cdata[0::2] = cdata_i[line, p0 - 1: pn]
+                cdata[1::2] = cdata_q[line, p0 - 1: pn]
+                cdata.tofile(fout)
 
     return ln - l0 + 1, pn - p0 + 1
 

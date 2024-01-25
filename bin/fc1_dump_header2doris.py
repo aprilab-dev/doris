@@ -10,7 +10,7 @@ import sys
 import h5py
 import fnmatch
 from typing import Any, Dict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 SPEED_OF_LIGHT = 299792458
@@ -63,6 +63,12 @@ def hms2sec(hmsString, convertFlag="int"):
         return float(secString)
     return round(secString)
 
+def reverse_time(cur_time: datetime):
+    current_day = cur_time.replace(microsecond=0, second=0, minute=0, hour=0)
+    next_day = current_day + timedelta(days=1)
+    time2nextday = next_day - cur_time
+    reversed_time = current_day + time2nextday
+    return reversed_time
 
 class FC1:
     """FC1 is used to read FC1 meta data and to make it compatible
@@ -116,6 +122,7 @@ class FC1:
             # product info
             "Radar_wavelength (m)": "carrier_frequency",
             "First_pixel_azimuth_time (UTC)": "zerodoppler_start_utc",
+            "Last_pixel_azimuth_time (UTC)": "zerodoppler_end_utc",
             "Pulse_Repetition_Frequency (computed, Hz)": "processing_prf",
             "Total_azimuth_band_width (Hz)": "total_processed_bandwidth_azimuth",
             "Weighting_azimuth": "window_function_azimuth",
@@ -157,7 +164,6 @@ class FC1:
         container["Scene_centre_latitude"] = container["Scene_centre"][2]
         container["Scene_centre_longitude"]= container["Scene_centre"][3]
 
-        container["Orbit_n_pts"] = len(container["Orbit Time"])
         container["Scene identification"] = (
             "Orbit: "
             + str(container["Orbit"])  # this doesn't mean anything at this moment.
@@ -192,14 +198,11 @@ class FC1:
         container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"]= container["DC_Estimate_Coeffs"][0][2]
 
         # update the time format
+        cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        if container["Look Side"] == "left":
+            cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
         container["First_pixel_azimuth_time (UTC)"] = (
-            datetime.strftime(
-                datetime.strptime(
-                    container["First_pixel_azimuth_time (UTC)"],
-                    "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-                "%d-%b-%Y %H:%M:%S.%f"
-            )
+            datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
         )
 
         container["Dataformat"] = "HDF5"
@@ -285,9 +288,12 @@ class FC1:
                 )
             ]  # format in a nicer way
 
+            cur_orb_time = self.meta["Orbit Time"][i][0].decode()
+            if self.meta["Look Side"] == "left":  # fake right looking
+                cur_orb_time = reverse_time(datetime.strptime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f"))
             print(
                 " {:>7} {:>15} {:>15} {:>15}".format(
-                    hms2sec(self.meta["Orbit Time"][i][0].decode(), convertFlag="float"),
+                    hms2sec(cur_orb_time, convertFlag="float"),
                     x,
                     y,
                     z
