@@ -164,6 +164,7 @@ class FC1:
         container["Scene_centre_latitude"] = container["Scene_centre"][2]
         container["Scene_centre_longitude"]= container["Scene_centre"][3]
 
+        container["Orbit_n_pts"] = len(container["Orbit Time"])
         container["Scene identification"] = (
             "Orbit: "
             + str(container["Orbit"])  # this doesn't mean anything at this moment.
@@ -277,28 +278,50 @@ class FC1:
         print("NUMBER_OF_DATAPOINTS: 			{}".format(self.meta["Orbit_n_pts"]))  # nopep8
         print("")
 
-        for i in range(0, self.meta["Orbit_n_pts"]):
+        if self.meta["Look Side"] == "left":  # fake right looking
+            for i in reversed(range(0, self.meta["Orbit_n_pts"])):
 
-            x, y, z = [
-                e
-                for e in (
-                    self.meta["Orbit X"][i],
-                    self.meta["Orbit Y"][i],
-                    self.meta["Orbit Z"][i],
-                )
-            ]  # format in a nicer way
+                x, y, z = [
+                    e
+                    for e in (
+                        self.meta["Orbit X"][i],
+                        self.meta["Orbit Y"][i],
+                        self.meta["Orbit Z"][i],
+                    )
+                ]  # format in a nicer way
 
-            cur_orb_time = self.meta["Orbit Time"][i][0].decode()
-            if self.meta["Look Side"] == "left":  # fake right looking
+                cur_orb_time = self.meta["Orbit Time"][i][0].decode()
                 cur_orb_time = reverse_time(datetime.strptime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f"))
-            print(
-                " {:>7} {:>15} {:>15} {:>15}".format(
-                    hms2sec(cur_orb_time, convertFlag="float"),
-                    x,
-                    y,
-                    z
+                cur_orb_time = datetime.strftime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f")
+                print(
+                    " {:>7} {:>15} {:>15} {:>15}".format(
+                        hms2sec(cur_orb_time, convertFlag="float"),
+                        x,
+                        y,
+                        z
+                    )
                 )
-            )
+        else:
+            for i in range(0, self.meta["Orbit_n_pts"]):
+
+                x, y, z = [
+                    e
+                    for e in (
+                        self.meta["Orbit X"][i],
+                        self.meta["Orbit Y"][i],
+                        self.meta["Orbit Z"][i],
+                    )
+                ]  # format in a nicer way
+
+                cur_orb_time = self.meta["Orbit Time"][i][0].decode()
+                print(
+                    " {:>7} {:>15} {:>15} {:>15}".format(
+                        hms2sec(cur_orb_time, convertFlag="float"),
+                        x,
+                        y,
+                        z
+                    )
+                )
 
         print("\n")
         print("**************************************************************")
