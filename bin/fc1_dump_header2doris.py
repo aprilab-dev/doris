@@ -287,7 +287,10 @@ class FC1:
 
             print(
                 " {:>7} {:>15} {:>15} {:>15}".format(
-                    hms2sec(self.meta["Orbit Time"][i][0].decode()), x, y, z
+                    hms2sec(self.meta["Orbit Time"][i][0].decode(), convertFlag="float"),
+                    x,
+                    y,
+                    z
                 )
             )
 
