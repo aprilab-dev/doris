@@ -43,7 +43,7 @@
 SHELL   = /bin/sh
 
 ### Specify compiler/installation directory ###
-INSTALLDIR = /usr/local/bin
+INSTALLDIR = /home/yuxiao/.local/bin
 CC	   = g++
 SCRIPTSDIR = ../bin
 
@@ -93,7 +93,7 @@ CFLAGS 	= $(CFLAGSOPT)
 ### Library locations flag ###
 ### -lcl : used for veclib 
 ### -lm  : used for fftw
-LFLAGS  =   -L/home/yuxiao/Develop/sophia/doris/fftw-3.3.9/lib -lfftw3f -lm
+LFLAGS  =   -L/home/yuxiao/Develop/tydev/doris/fftw-3.3.9/lib -lfftw3f -lm
 
 
 #####################################################
@@ -139,6 +139,7 @@ SCRIPTS	=	helpdoris \
                 csk* \
 		alos2* \
 		gf3* \
+		fc1* \
 		SarSpectrum* \
                 gammaReadfiles.csh \
                 hhmmss2sec.py \
