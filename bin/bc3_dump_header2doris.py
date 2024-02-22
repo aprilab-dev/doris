@@ -118,9 +118,10 @@ class BC3:
             "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation//productInformation//prf",
             "Total_azimuth_band_width (Hz)": "generalAnnotation//productInformation//proBandwidth",
             "Weighting_azimuth": None,
-            "Xtrack_f_DC_constant (Hz, early edge)": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",
-            "Xtrack_f_DC_linear (Hz/s, early edge)": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",
-            "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",  # are all together
+            "Doppler_Coef": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",
+            "Xtrack_f_DC_constant (Hz, early edge)": None,
+            "Xtrack_f_DC_linear (Hz/s, early edge)": None,
+            "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": None,  # are all together
             "Range_time_to_first_pixel (2way) (ms)": "imageAnnotation//imageInformation//slantRangeTime",  # [s], needs to convert to ms
             "Range_sampling_rate (computed, MHz)": "generalAnnotation//productInformation//rangeSamplingRate",  # needs to divide by 1e6
             "Total_range_band_width (MHz)": "generalAnnotation//productInformation//bandWidth",
@@ -135,6 +136,9 @@ class BC3:
             "Orbit X": "generalAnnotation//orbitList//orbit//position//x",
             "Orbit Y": "generalAnnotation//orbitList//orbit//position//y",
             "Orbit Z": "generalAnnotation//orbitList//orbit//position//z",
+            # Geolocation
+            "latitude":"geolocationGrid//geolocationGridPointList//latitude",
+            "longitude":"geolocationGrid//geolocationGridPoint//longitude",
         }
 
         # get variables and parameters from xml
@@ -143,6 +147,8 @@ class BC3:
             "Orbit X": [],
             "Orbit Y": [],
             "Orbit Z": [],
+            "latitude": [],
+            "longitude": [],
         }
         root = ElementTree.parse(self.meta["path"]).getroot()
         for key, value in query_list.items():
@@ -155,11 +161,21 @@ class BC3:
                     # for item in root.findall(value):
                     if key.startswith("Orbit "):  # space is necessary here.
                         container[key].append(item.text)
+                    elif key.endswith("tude") and key.startswith("l"): # latitude & longitude
+                        container[key].append(item.text)
                     else:
                         container[key] = item.text
 
         # Two entries that have to be manually updated
         container["Orbit_n_pts"] = len(container["Orbit Time"])
+
+        # center of the scene
+        # find the 'geolocationGridPointList' element
+        geolocation_list = root.find('geolocationGrid//geolocationGridPointList')
+        count = geolocation_list.get('count')  # type: ignore
+        center_scene_index = (int(count) + 1) // 2  # type: ignore
+        container["Scene_centre_latitude"] = float(container["latitude"][center_scene_index])
+        container["Scene_centre_longitude"] = float(container["longitude"][center_scene_index])
 
         container["Scene identification"] = (
             "Orbit: "
@@ -171,14 +187,14 @@ class BC3:
         )
         container["Scene location"] = (
             "lat: "
-            + container["Scene_centre_latitude"]
+            + str(container["Scene_centre_latitude"])  # type: ignore
             + " lon: "
-            + container["Scene_centre_longitude"]
+            + str(container["Scene_centre_longitude"])
         )
 
-        # container["Datafile"] = os.path.basename(
-        #     locate("GF3*L1A*.tiff", os.path.dirname(self.meta["path"]))
-        # )
+        container["Datafile"] = os.path.basename(
+            locate("bc3*slc*.tiff", os.path.dirname(self.meta["path"]))
+        )
 
         # 2-way Slant Range Time
         container["Range_time_to_first_pixel (2way) (ms)"] = (  # us to ms
@@ -189,6 +205,13 @@ class BC3:
         container["Range_sampling_rate (computed, MHz)"] = (
             float(container["Range_sampling_rate (computed, MHz)"]) / 1e6
         )
+
+        # unpack doppler coefficients
+        (
+            container["Xtrack_f_DC_constant (Hz, early edge)"],
+            container["Xtrack_f_DC_linear (Hz/s, early edge)"],
+            container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"], *_
+        ) = container["Doppler_Coef"].split()
 
         # First Line UTC Time
         container["First_pixel_azimuth_time (UTC)"] = (
