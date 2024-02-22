@@ -137,8 +137,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # locate & read ALOS2 file
+    print("\nStart Cropping BC3 data.\n\n")
     az_lines, ra_samples = bc3_to_data(filein, fileout, l0, lN, p0, pN)
 
+    # ------------------ Plot is Optional -----------------------------------
     # plot & export quicklook
     sys.stdout.write("Exporting quicklook...")
     if l0 is None and lN is None and p0 is None and pN is None:
