@@ -94,6 +94,8 @@ void gf3_dump_data(
 
 void fc1_dump_data(
                    const input_crop &writeslc_arg);
+void bc3_dump_data(
+                   const input_crop &writeslc_arg);
 
 void rs2_dump_data(
                    const input_crop &writeslc_arg);
