@@ -10,7 +10,7 @@ import sys
 import fnmatch
 from typing import Any, Dict
 from xml.etree import ElementTree
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 SPEED_OF_LIGHT = 299792458
@@ -64,12 +64,19 @@ def hms2sec(hmsString, convertFlag="int"):
     else:
         return round(secString)
 
+def reverse_time(cur_time: datetime):
+    current_day = cur_time.replace(microsecond=0, second=0, minute=0, hour=0)
+    next_day = current_day + timedelta(days=1)
+    time2nextday = next_day - cur_time
+    reversed_time = current_day + time2nextday
+    return reversed_time
+
 
 class BC3:
-    """BC3 is the Inst 38's TY data.
+    """Implementing the S-1 Format for FC1 reader.
 
     author: Yuxiao QIN
-    date: 2024-Feb
+    date: 2024-July
     """
 
     def __init__(self):
@@ -84,7 +91,7 @@ class BC3:
         directory : str
             [description]
         """
-        pattern = "bc3-sm1-slc*.xml"
+        pattern = "bc3-sm-slc*.xml"
         self.meta["path"] = locate(pattern, directory)
 
         return self
@@ -100,7 +107,7 @@ class BC3:
             "Volume_set_identifier": "adsHeader//missionId",
             # mission info
             "(Check)Number of records in ref. file": "imageAnnotation//imageInformation//numberOfLines",
-            "SAR_PROCESSOR": None,  # 38
+            "SAR_PROCESSOR": None,
             "Product type specifier": "adsHeader//missionId",
             "Logical volume generating facility": None,
             "Logical volume creation date": None,
@@ -115,8 +122,8 @@ class BC3:
             # product info
             "Radar_wavelength (m)": "generalAnnotation//productInformation//radarFrequency",
             "First_pixel_azimuth_time (UTC)": "imageAnnotation//imageInformation//productFirstLineUtcTime",
-            "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation//productInformation//prf",
-            "Total_azimuth_band_width (Hz)": "generalAnnotation//productInformation//proBandwidth",
+            "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation//downlinkInformationList//prf",
+            "Total_azimuth_band_width (Hz)": "imageAnnotation//processingInformation//swathProcParamsList//swathProcParams//azimuthProcessing//totalBandwidth",
             "Weighting_azimuth": None,
             "Doppler_Coef": "dopplerCentroid//dcEstimateList//dcEstimate//dataDcPolynomial",
             "Xtrack_f_DC_constant (Hz, early edge)": None,
@@ -124,7 +131,7 @@ class BC3:
             "Xtrack_f_DC_quadratic (Hz/s/s, early edge)": None,  # are all together
             "Range_time_to_first_pixel (2way) (ms)": "imageAnnotation//imageInformation//slantRangeTime",  # [s], needs to convert to ms
             "Range_sampling_rate (computed, MHz)": "generalAnnotation//productInformation//rangeSamplingRate",  # needs to divide by 1e6
-            "Total_range_band_width (MHz)": "generalAnnotation//productInformation//bandWidth",
+            "Total_range_band_width (MHz)": "imageAnnotation//processingInformation//swathProcParamsList//swathProcParams//rangeProcessing//totalBandwidth",
             "Weighting_range": None,
             # SLC info
             "Datafile": None,
@@ -205,6 +212,9 @@ class BC3:
         container["Range_sampling_rate (computed, MHz)"] = (
             float(container["Range_sampling_rate (computed, MHz)"]) / 1e6
         )
+        container["Total_range_band_width (MHz)"] = (
+            float(container["Total_range_band_width (MHz)"]) / 1e6
+        )
 
         # unpack doppler coefficients
         (
@@ -213,20 +223,29 @@ class BC3:
             container["Xtrack_f_DC_quadratic (Hz/s/s, early edge)"], *_
         ) = container["Doppler_Coef"].split()
 
-        # First Line UTC Time
+        # # First Line UTC Time
+        # container["First_pixel_azimuth_time (UTC)"] = (
+        #     datetime.strftime(
+        #         datetime.strptime(
+        #             container["First_pixel_azimuth_time (UTC)"],
+        #             "%Y-%m-%dT%H:%M:%S.%f"
+        #         ),
+        #         "%d-%b-%Y %H:%M:%S.%f"
+        #     )
+        # )
+
+        # update the time format
+        cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
+        if container["Direction"] == "ASCENDING":
+            cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
         container["First_pixel_azimuth_time (UTC)"] = (
-            datetime.strftime(
-                datetime.strptime(
-                    container["First_pixel_azimuth_time (UTC)"],
-                    "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-                "%d-%b-%Y %H:%M:%S.%f"
-            )
+            datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
         )
 
+
         # manually update
-        container["SAR_PROCESSOR"] = "38"
-        container["Logical volume generating facility"] = "38"
+        container["SAR_PROCESSOR"] = "HL"
+        container["Logical volume generating facility"] = "HL"
         self.meta.update(container)
 
         return self
