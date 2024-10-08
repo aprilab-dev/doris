@@ -431,6 +431,10 @@ void snaphu_unwrap(
                            interferogram.win.pixlo  + 1) /
                            interferogram.multilookP;
 
+  const int32 MAXITER   = 10;                           // number iterations
+  const real8 CRITERPOS = 1e-6;                         // meters
+  const real8 CRITERTIM = 1e-10;                        // seconds
+
   // ______ Make commandstring ______
   char basecmdstring[3*ONE27];
   ostrstream basecmdstr(basecmdstring,3*ONE27);// to convert int to char
@@ -452,14 +456,14 @@ void snaphu_unwrap(
   cn P;   // point at ellips for mid image, returned by lp2xyz
   real8 line  = 0.5*real8(interferogram.win.linelo+interferogram.win.linehi);
   real8 pixel = 0.5*real8(interferogram.win.pixlo+interferogram.win.pixhi);
-  lp2xyz(line,pixel,ellips,master,masterorbit,P);// returns P
+  lp2xyz(line,pixel,ellips,master,masterorbit,P, MAXITER,CRITERPOS);// returns P
   real8 EARTHRADIUS = P.norm();
   // ______ Compute xyz for master satellite ______
   real8 time_azi;                               // returned
   real8 time_range;                             // returned
-  xyz2t(time_azi,time_range,master, masterorbit, P);
+  xyz2t(time_azi,time_range,master, masterorbit, P, MAXITER,CRITERTIM);
   cn M = masterorbit.getxyz(time_azi);          // master satellite position
-  xyz2t(time_azi,time_range,slave, slaveorbit, P);
+  xyz2t(time_azi,time_range,slave, slaveorbit, P, MAXITER,CRITERTIM);
   cn S = slaveorbit.getxyz(time_azi);           // slave satellite position
   real8 ORBITRADIUS = M.norm();
   // ______ Baseline parametrizations returned ______
@@ -471,8 +475,8 @@ void snaphu_unwrap(
     Bh, Bv, Bpar, Bperp, theta, M, P, S);
   real8 BASELINEANGLE_DEG = rad2deg(BASELINEANGLE_RAD);
   ;// dA via orbit...
-  lp2xyz(line+1.,pixel,ellips,master,masterorbit,P);// returns P
-  xyz2t(time_azi,time_range,master, masterorbit, P);// returns time
+  lp2xyz(line+1.,pixel,ellips,master,masterorbit,P, MAXITER,CRITERPOS);// returns P
+  xyz2t(time_azi,time_range,master, masterorbit, P, MAXITER,CRITERTIM);// returns time
   cn M1 = masterorbit.getxyz(time_azi);
   real8 DA        = abs(real8(interferogram.multilookL)*M.dist(M1));
   real8 AZRES     = ((master.prf)/master.abw) * 

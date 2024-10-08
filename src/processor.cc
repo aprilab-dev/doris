@@ -130,7 +130,7 @@ int main(
   #endif
 
   // ====== ident string for `what doris` ======
-  char ident[] = "@(#)Doris InSAR software, $Revision: 4.11.1 $, $Author: TUDelft & SkyGeo $";
+  char ident[] = "@(#)Doris InSAR software, $Revision: 4.12 $, $Author: TUDelft & SkyGeo $";
   cerr << endl;
   INFO.print(ident);//use ident so it is not optimized away
 
@@ -518,6 +518,33 @@ int main(
       // updatefile("alos2_dump_header.log",input_general.logfile);
       break;
 
+    // ______ GF3 ______
+    case SLC_GF3:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "gf3_dump_header2doris.py "
+      << input_s_readfiles.leaderfile << " "
+      << " > scratchres_gf3" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the GF3 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to gf3_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "gf3_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to gf3_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_gf32",input_general.m_resfile);
+      // ___ update logfile ___
+      // updatefile("gf3_dump_header.log",input_general.logfile);
+      break;
+
     // ______ GAMMA Processed SLC ______
     // BO.20100916.
     case SLC_GAMMA:
@@ -569,7 +596,7 @@ int main(
 
     master.fillslcimage(input_general.m_resfile);
     interferogram.win = master.currentwindow;
-    
+
     INFO<<"\n window : " << interferogram.win.linelo << ","
                  << interferogram.win.linehi << ","
                  << interferogram.win.pixlo << ","
@@ -834,6 +861,20 @@ int main(
           updatefile("scratchres2raw",input_general.m_resfile);   // update resfile
           break;
 
+          // ______ GF3 ______
+        case SLC_GF3:
+          PROGRESS.print("System call to get GF3 data (requires gf3_dump_data program)");
+          // ______ Data window must be set correctly ______
+          if (input_m_crop.dbow.linelo == 0 || input_m_crop.dbow.linehi == 0 ||
+              input_m_crop.dbow.pixlo == 0  || input_m_crop.dbow.pixhi == 0)
+            {
+              input_m_crop.dbow = master.currentwindow;// needs to be set correctly after readfiles
+            }
+          gf3_dump_data(input_m_crop);
+          PROGRESS.print("Finished system call to gf3_dump_data()");
+          updatefile("scratchres2raw",input_general.m_resfile);   // update resfile
+          break;
+
           // ______ RADARSAT-2 ______
         case SLC_RS2:
           PROGRESS.print("System call to get Radarsat-2 data (requires rs2_dump_data program)");
@@ -892,7 +933,7 @@ int main(
     strcpy(SECTIONID,"*_Start_");
     strcat(SECTIONID,processcontrol[pr_m_crop]);
     master.updateslcimage(input_general.m_resfile,SECTIONID);
-    
+
     // update interferogram windows after cropping
     interferogram.win = master.currentwindow;
     INFO<<"\n window : " << interferogram.win.linelo << ","
@@ -1415,6 +1456,32 @@ int main(
       // updatefile("alos2_dump_header.log",input_general.logfile);
       break;
 
+    // ______ GF3 ______
+    case SLC_GF3:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "gf3_dump_header2doris.py "
+     << input_s_readfiles.leaderfile << " "	  //
+     << " > scratchres_gf3" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the GF3 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to gf3_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "gf3_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to gf3_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_gf3",input_general.s_resfile);
+      // ___ update logfile ___
+      // updatefile("gf3_dump_header.log",input_general.logfile);
+      break;
 
     // ______ GAMMA Processed SLC ______
     // BO.20100916.
@@ -1745,6 +1812,20 @@ int main(
           }
         alos2_dump_data(input_s_crop);
         PROGRESS.print("Finished system call to alos2_dump_data");
+        updatefile("scratchres2raw",input_general.s_resfile);   // update resfile
+        break;
+
+        // ______ GF3 ______
+      case SLC_GF3:
+        PROGRESS.print("System call to get GF3 data (requires gf3_dump_data program)");
+        // ______ Data window must be set correctly ______
+        if (input_s_crop.dbow.linelo == 0 || input_s_crop.dbow.linehi == 0 ||
+            input_s_crop.dbow.pixlo == 0  || input_s_crop.dbow.pixhi == 0)
+          {
+            input_s_crop.dbow = slave.currentwindow;// needs to be set correctly after readfiles
+          }
+        gf3_dump_data(input_s_crop);
+        PROGRESS.print("Finished system call to gf3_dump_data");
         updatefile("scratchres2raw",input_general.s_resfile);   // update resfile
         break;
 
@@ -2523,6 +2604,17 @@ int main(
     coeff_cpmP = readcoeff(input_general.i_resfile,
                  "Estimated_coefficientsP:",Ncoeffs(degreecpm));
 
+    // ______ YQ debug ______
+    DEBUG << "Check Coefficient: ["
+          << coeff_cpmL(0,0) << " " << coeff_cpmL(1,0) << " "
+          << coeff_cpmL(2,0) << " " << coeff_cpmL(3,0) << " "
+          << coeff_cpmL(4,0) << " " << coeff_cpmL(5,0) << " " << "]";
+    DEBUG.print();
+    DEBUG << "Check Coefficient: ["
+      << coeff_cpmP(0,0) << " " << coeff_cpmP(1,0) << " "
+      << coeff_cpmP(2,0) << " " << coeff_cpmP(3,0) << " "
+      << coeff_cpmP(4,0) << " " << coeff_cpmP(5,0) << " " << "]";
+    DEBUG.print();
 
     // bk 1 sep 2000, req. for resample...
     //interferogram.win = getoverlap(master,slave,coeff_cpmL,coeff_cpmP);
@@ -3876,13 +3968,12 @@ void usage(char *programname)
        << "\n\t ***     **    *  *   *   **\n\n\n";
   cerr << "\n  Program: \"" << programname << "\" " << SWVERSION
        << "\n\tInterferometric processor for SAR SLC data.\n"
-       << "\n\t(c) 1999-2020 Delft University of Technology, the Netherlands."
+       << "\n\t(c) 1999-2021 Delft University of Technology, the Netherlands."
        << "\n\t"
-       << "\n\tThe current version is maintained by YQ from SkyGeo"
+       << "\n\tThe current version is maintained by Yuxiao Qin"
        << "\n\t"
        << "\n\t------------Highlight of this update------------"
-       << "\n\t1. PAZ & ALOS2 are now supported;"
-       << "\n\t2. radarcodedem now automatically does cropping. "
+       << "\n\t1. GF3 is now supported."
        << "\n\n"
        << "  SYNOPSIS:\n\t" << programname
        << " infile | -h [searchterm] | -v | -c | -q\n\n"

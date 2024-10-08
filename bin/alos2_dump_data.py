@@ -87,7 +87,6 @@ def alos2_2_data(input_filename, output_filename, l0, lN, p0, pN):
         ## Write to disk, complex float32 format (cpxfloat32)
         cdata.tofile(fout)
 
-
         # Just for printing progress.
         if az % round((lN-l0+1)/10) == 0 and count < 10:
             sys.stdout.write('%s...' % (count*10))

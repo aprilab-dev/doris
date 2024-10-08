@@ -501,8 +501,8 @@ int32 lp2xyz(
         const slcimage  &image,
         orbit           &orb,
         cn              &returnpos,
-        int32            MAXITER,
-        real8            CRITERPOS)
+        int32            MAXITER=10,      // [.] defaults
+        real8            CRITERPOS=1e-6)  // [m]
   {
   TRACE_FUNCTION("lp2xyz (BK 04-Jan-1999)")
 
@@ -592,8 +592,8 @@ int32 xyz2orb(
         const slcimage  &image,
         orbit           &orb,       // non const, khi/klo
         const cn        &pointonellips,
-        int32            MAXITER,   // defaults
-        real8            CRITERTIM) // seconds
+        int32            MAXITER=10,   // defaults
+        real8            CRITERTIM=1e-10) // seconds
   {
   TRACE_FUNCTION("xyz2orb (BK 22-Sep-2000)");
   // ______ Initial value azimuth time ______
@@ -659,8 +659,8 @@ int32 xyz2t(
         const slcimage  &image,
         orbit           &orb,       // non const, khi/klo
         const cn        &pos,
-        int32            MAXITER,   // defaults
-        real8            CRITERTIM) // seconds
+        int32            MAXITER=10,   // defaults
+        real8            CRITERTIM=1e-10) // seconds
   {
   TRACE_FUNCTION("xyz2t (BK 04-Jan-1999)")
 
@@ -727,8 +727,8 @@ int32 xyz2lp(
         const slcimage &image,
         orbit           &orb,
         const cn        &pos,               // point at ground
-        int32            MAXITER,
-        real8            CRITERTIM)
+        int32            MAXITER=10,
+        real8            CRITERTIM=1e-10)
   {
   TRACE_FUNCTION("xyz2lp (BK 04-Jan-1999)");
   real8 tazi;
@@ -770,8 +770,8 @@ int32 ell2lp(
         real8            phi,
         real8            lambda,
         real8            height,
-        int32            MAXITER,
-        real8            CRITERTIM)
+        int32            MAXITER=10,
+        real8            CRITERTIM=1e-10)
   {
   TRACE_FUNCTION("ell2lp (BK 27-Jan-1999)")
   // ______ Transform ell2xyz ______
@@ -813,8 +813,8 @@ int32 lp2ell(
         real8           &returnphi,
         real8           &returnlambda,
         real8           &returnheight,
-        int32            MAXITER,
-        real8            CRITERPOS)
+        int32            MAXITER=10,
+        real8            CRITERPOS=1e-6)
   {
   TRACE_FUNCTION("lp2ell (BK: 27-Jan-1999)");
   // ______ Transform lp2xyz ______

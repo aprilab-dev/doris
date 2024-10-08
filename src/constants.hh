@@ -161,7 +161,8 @@ extern bk_messages ERROR;
 //#define SWVERSION "version  4.0.8 (04-09-2014)" "\n\t\t     build \t" __TIMESTAMP__ // [FvL] new version based on svn trunk with still untested spotlight developments.
 // #define SWVERSION "version  4.10-beta (12-02-2019)" "\n\t\t     build \t" __TIMESTAMP__ // Added ALOS2 support.
 // #define SWVERSION "version  4.11 (10-06-2020)" "\n\t\t     build \t" __TIMESTAMP__ // Added ALOS2 support.
-#define SWVERSION "version  4.11.1 (18-06-2020)" "\n\t\t     build \t" __TIMESTAMP__ // Added ALOS2 support.
+// #define SWVERSION "version  4.11.1 (18-06-2020)" "\n\t\t     build \t" __TIMESTAMP__ // Added ALOS2 support.
+#define SWVERSION "version  4.12 (05-05-2021)" "\n\t\t     build \t" __TIMESTAMP__ // Added GF3 support.
 
 // ====== Typedefs for portability ======
 typedef short int           int16;    // 16 bits --> 2 bytes.  It has a range of -32768 to 32767. [ from -2^15 to (2^15 - 1) ]  [MA]
@@ -260,6 +261,7 @@ const int16     SLC_JERS    = 4;                // JERS (ceos?)
 // for ALOS: [PM]
 const int16     SLC_ALOS     = 5;               // ALOS (ceos)   //  [MA] TODO what about different polarizations: single 5 --> 51; dual == 52 etc.
 const int16     SLC_ALOS2    = 7;				// ALOS2
+const int16     SLC_GF3      = 8;				// GF3
 const int16     SLC_TSX      = 6;               // TSX stripmap
 // for Radarsat-2: [MA]
 const int16     SLC_RS2      = 70;              // RS2 [Default for Radarsat-2 SLC]  [MA]

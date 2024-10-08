@@ -768,6 +768,12 @@ void slcimage::fillslcimage(const char* file)
           DEBUG.print("Substring \"ALOS2\" found in Product type specifier.");
           sensor = SLC_ALOS2;
         }
+      pch = strstr(word,"GF3");
+      if (pch != NULL)  // GF3
+        {
+          DEBUG.print("Substring \"GF3\" found in Product type specifier.");
+          sensor = SLC_GF3;
+        }
       pch = strstr (word,"TSX");
       if (pch != NULL)
         {

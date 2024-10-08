@@ -43,7 +43,7 @@
 SHELL   = /bin/sh
 
 ### Specify compiler/installation directory ###
-INSTALLDIR = /usr/local/bin
+INSTALLDIR = /home/yuxiao/.local/bin
 CC	   = g++
 SCRIPTSDIR = ../bin
 
@@ -59,7 +59,7 @@ DEF5    = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE #  -5
 #
 ### Do not change following 2, simply comment DEF1-8 above
 DEFSDEBUG 	= $(DEF1) $(DEF2) $(DEF3)
-DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I../fftw-3.2.1/include
+DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I/home/yuxiao/Develop/doris/fftw-3.3.9/include
 
 ### NOTE ###
 # If you get warnings like the following (I got them with g++, not with aCC)
@@ -78,8 +78,7 @@ LOCAL_INSTALLDIR = ../bin
 ### CFLAGS ###
 # Compiler options flag ###
 # Specify compiler flags (I selected these for g++)
-# CFLAGSDEBUG 	= -g -O $(DEFS) $(DEFSDEBUG)
-CFLAGSDEBUG 	= -g -O0 $(DEFS)
+CFLAGSDEBUG 	= -g -O $(DEFS) $(DEFSDEBUG)
 CFLAGSOPT 	= -O $(DEFS)
 #CFLAGSOPT 	= -O2 $(DEFS)   # this crashed doris! (?)
 #CFLAGSOPT 	= -O3 $(DEFS)   # this crashed doris! (?)
@@ -88,13 +87,13 @@ CFLAGSOPT 	= -O $(DEFS)
 ### Change here ###
 ### set CFLAGS depending on if you compile debug version or working version ###
 #CFLAGS 	= $(CFLAGSDEBUG)
-CFLAGS 	= $(CFLAGSDEBUG)
+CFLAGS 	= $(CFLAGSOPT)
 ### END CCNOTE ###
 
 ### Library locations flag ###
 ### -lcl : used for veclib 
 ### -lm  : used for fftw
-LFLAGS  =   -L../fftw-3.2.1/lib -lfftw3f -lm
+LFLAGS  =   -L/home/yuxiao/Develop/doris/fftw-3.3.9/lib -lfftw3f -lm
 
 
 #####################################################
@@ -138,8 +137,9 @@ SCRIPTS	=	helpdoris \
                 tsx* \
                 rs2* \
                 csk* \
-                alos2* \
-                SarSpectrum* \
+		alos2* \
+		gf3* \
+		SarSpectrum* \
                 gammaReadfiles.csh \
                 hhmmss2sec.py \
                 sec2hhmmss.py
