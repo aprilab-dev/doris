@@ -381,7 +381,6 @@ class ALOS2:
         print('          - `datfile` is the ALOS2 data file.')
         print('\n')
         print('This software is part of Doris InSAR software package.\n')
-        print('(c)SkyGeo NL\n')
 
 
 if __name__ == "__main__":
