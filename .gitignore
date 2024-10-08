@@ -10,3 +10,6 @@ src/*.o
 
 # fftw
 fftw*
+
+# test data
+test.slc*

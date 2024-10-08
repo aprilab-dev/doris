@@ -130,7 +130,7 @@ int main(
   #endif
 
   // ====== ident string for `what doris` ======
-  char ident[] = "@(#)Doris InSAR software, $Revision: 4.12 $, $Author: TUDelft & SkyGeo $";
+  char ident[] = "@(#)Doris InSAR software, $Revision: 4.14 $, $Author: TUDelft & YQ $";
   cerr << endl;
   INFO.print(ident);//use ident so it is not optimized away
 
@@ -545,6 +545,61 @@ int main(
       // updatefile("gf3_dump_header.log",input_general.logfile);
       break;
 
+    // ______ FC1 ______
+    case SLC_FC1:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "fc1_dump_header2doris.py "
+      << input_s_readfiles.leaderfile << " "
+      << " > scratchres_fc1" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the FC1 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to fc1_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "fc1_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to fc1_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_fc1",input_general.m_resfile);
+      // ___ update logfile ___
+      // updatefile("gf3_dump_header.log",input_general.logfile);
+      break;
+
+    // ______ BC3 ______
+    case SLC_BC3:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "bc3_dump_header2doris.py "
+      << input_s_readfiles.leaderfile << " "
+      << " > scratchres_bc3" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the BC3 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to bc3_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "bc3_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to bc3_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_bc3",input_general.m_resfile);
+      // ___ update logfile ___
+      // updatefile("bc3_dump_header.log",input_general.logfile);
+      break;
+
+
     // ______ GAMMA Processed SLC ______
     // BO.20100916.
     case SLC_GAMMA:
@@ -874,6 +929,33 @@ int main(
           PROGRESS.print("Finished system call to gf3_dump_data()");
           updatefile("scratchres2raw",input_general.m_resfile);   // update resfile
           break;
+
+          // ______ FC1 ______
+          case SLC_FC1:
+            PROGRESS.print("System call to get FC1 data (requires fc1_dump_data program)");
+            // ______ Data window must be set correctly ______
+            if (input_m_crop.dbow.linelo == 0 || input_m_crop.dbow.linehi == 0 ||
+                input_m_crop.dbow.pixlo == 0  || input_m_crop.dbow.pixhi == 0)
+              {
+                input_m_crop.dbow = master.currentwindow;// needs to be set correctly after readfiles
+              }
+            fc1_dump_data(input_m_crop);
+            PROGRESS.print("Finished system call to fc1_dump_data()");
+            updatefile("scratchres2raw",input_general.m_resfile);   // update resfile
+            break;
+          // ______ BC3 ______
+          case SLC_BC3:
+            PROGRESS.print("System call to get BC3 data (requires bc3_dump_data program)");
+            // ______ Data window must be set correctly ______
+            if (input_m_crop.dbow.linelo == 0 || input_m_crop.dbow.linehi == 0 ||
+                input_m_crop.dbow.pixlo == 0  || input_m_crop.dbow.pixhi == 0)
+              {
+                input_m_crop.dbow = master.currentwindow;// needs to be set correctly after readfiles
+              }
+            bc3_dump_data(input_m_crop);
+            PROGRESS.print("Finished system call to bc3_dump_data()");
+            updatefile("scratchres2raw",input_general.m_resfile);   // update resfile
+            break;
 
           // ______ RADARSAT-2 ______
         case SLC_RS2:
@@ -1483,6 +1565,59 @@ int main(
       // updatefile("gf3_dump_header.log",input_general.logfile);
       break;
 
+    // ______ FC1 ______
+    case SLC_FC1:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "fc1_dump_header2doris.py "
+     << input_s_readfiles.leaderfile << " "	  //
+     << " > scratchres_fc1" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the FC1 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to fc1_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "fc1_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to fc1_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_fc1",input_general.s_resfile);
+      // ___ update logfile ___
+      // updatefile("fc1_dump_header.log",input_general.logfile);
+      break;
+    // ______ BC3 ______
+    case SLC_BC3:
+      INFO.reset();// make sure nothing in buffer
+      INFO << "bc3_dump_header2doris.py "
+     << input_s_readfiles.leaderfile << " "	  //
+     << " > scratchres_bc3" << endl << ends;
+      //char cmd[512];// command string
+      strcpy(cmd, INFO.get_str());
+      INFO.print("With following command the BC3 header was read.");
+      INFO.print(cmd);
+      PROGRESS.print("Making system call to bc3_dump_header2doris.py ");
+      PROGRESS.print("(also requires python3 and numpy.)");
+      status=system(cmd);// this does the work
+      if (status != 0)                                                          // [MA] TODO make it a function
+        {
+        ERROR << "bc3_dump_header2doris.py: failed with exit code: " << status;
+        PRINT_ERROR(ERROR.get_str());
+        throw(some_error);
+        }
+      INFO.reset();
+      PROGRESS.print("Finished system call to bc3_dump_header2doris.py");
+      // ___ update resfile ___
+      updatefile("scratchres_bc3",input_general.s_resfile);
+      // ___ update logfile ___
+      // updatefile("bc3_dump_header.log",input_general.logfile);
+      break;
+
     // ______ GAMMA Processed SLC ______
     // BO.20100916.
     case SLC_GAMMA:
@@ -1826,6 +1961,33 @@ int main(
           }
         gf3_dump_data(input_s_crop);
         PROGRESS.print("Finished system call to gf3_dump_data");
+        updatefile("scratchres2raw",input_general.s_resfile);   // update resfile
+        break;
+
+        // ______ FC1 ______
+      case SLC_FC1:
+        PROGRESS.print("System call to get FC1 data (requires fc1_dump_data program)");
+        // ______ Data window must be set correctly ______
+        if (input_s_crop.dbow.linelo == 0 || input_s_crop.dbow.linehi == 0 ||
+            input_s_crop.dbow.pixlo == 0  || input_s_crop.dbow.pixhi == 0)
+          {
+            input_s_crop.dbow = slave.currentwindow;// needs to be set correctly after readfiles
+          }
+        fc1_dump_data(input_s_crop);
+        PROGRESS.print("Finished system call to fc1_dump_data");
+        updatefile("scratchres2raw",input_general.s_resfile);   // update resfile
+        break;
+        // ______ BC3 ______
+      case SLC_BC3:
+        PROGRESS.print("System call to get BC3 data (requires bc3_dump_data program)");
+        // ______ Data window must be set correctly ______
+        if (input_s_crop.dbow.linelo == 0 || input_s_crop.dbow.linehi == 0 ||
+            input_s_crop.dbow.pixlo == 0  || input_s_crop.dbow.pixhi == 0)
+          {
+            input_s_crop.dbow = slave.currentwindow;// needs to be set correctly after readfiles
+          }
+        bc3_dump_data(input_s_crop);
+        PROGRESS.print("Finished system call to bc3_dump_data");
         updatefile("scratchres2raw",input_general.s_resfile);   // update resfile
         break;
 
@@ -3968,12 +4130,12 @@ void usage(char *programname)
        << "\n\t ***     **    *  *   *   **\n\n\n";
   cerr << "\n  Program: \"" << programname << "\" " << SWVERSION
        << "\n\tInterferometric processor for SAR SLC data.\n"
-       << "\n\t(c) 1999-2021 Delft University of Technology, the Netherlands."
+       << "\n\t(c) 1999-2024 Delft University of Technology, the Netherlands."
        << "\n\t"
        << "\n\tThe current version is maintained by Yuxiao Qin"
        << "\n\t"
        << "\n\t------------Highlight of this update------------"
-       << "\n\t1. GF3 is now supported."
+       << "\n\t1. FC1/BC3 is now supported."
        << "\n\n"
        << "  SYNOPSIS:\n\t" << programname
        << " infile | -h [searchterm] | -v | -c | -q\n\n"
