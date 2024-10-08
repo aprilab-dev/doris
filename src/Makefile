@@ -31,7 +31,7 @@
 #  GNU g++ version ?       on Linux X86					#
 #  SGI ?								#
 #  Sun Studion 9,10,11     on Solaris Sparc and X86/AMD64		#
-#  GNU g++ versions v3.4, v4.0, v4.1, v4.2, v4.3 on Linux X86 and AMD64 # 
+#  GNU g++ versions v3.4, v4.0, v4.1, v4.2, v4.3 on Linux X86 and AMD64 #
 #  Sun Sudion v11          on Linux AMD64				#
 #  Intel Compilers v9, v10, v11 on Linux AMD64				#
 #########################################################################
@@ -52,14 +52,14 @@ SCRIPTSDIR = ../bin
 DEF1    = -D__DEBUGMAT1	# 		-1- range checking in matrix class
 DEF2    = -D__DEBUGMAT2	# 		-2- info matrix class (debug only)
 DEF3    = -D__DEBUG #			-3- debug for other files
-DEF4    = -Wno-deprecated            #  -4- do not display warnings due to depricated entries 
+DEF4    = -Wno-deprecated            #  -4- do not display warnings due to depricated entries
 DEF5    = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE #  -5- support for large files
 #DEF6    = -DNO_FASTTRIG              #  -6-  extra functional switches
 #DEF9     = -D__NO_IOS_BINARY__ # -9- comment out if you ios::binary (most will)
 #
 ### Do not change following 2, simply comment DEF1-8 above
 DEFSDEBUG 	= $(DEF1) $(DEF2) $(DEF3)
-DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I/home/yuxiao/Develop/sophia/doris/fftw-3.3.9/include
+DEFS		= $(DEF4) $(DEF5) $(DEF6)   -D__USE_FFTW_LIBRARY__ -D__X86PROCESSOR__   -I/home/yuxiao/Develop/tydev/doris/fftw-3.3.9/include
 
 ### NOTE ###
 # If you get warnings like the following (I got them with g++, not with aCC)
@@ -91,9 +91,9 @@ CFLAGS 	= $(CFLAGSOPT)
 ### END CCNOTE ###
 
 ### Library locations flag ###
-### -lcl : used for veclib 
+### -lcl : used for veclib
 ### -lm  : used for fftw
-LFLAGS  =   -L/home/yuxiao/Develop/sophia/doris/fftw-3.3.9/lib -lfftw3f -lm
+LFLAGS  =   -L/home/yuxiao/Develop/tydev/doris/fftw-3.3.9/lib -lfftw3f -lm
 
 
 #####################################################
@@ -159,7 +159,7 @@ default:        $(EXECUTABLE)
 
 ### how to compile object code .o from C++ source files .cc (general rule) ###
 # space between -o and filename for SUN make (BK 7 july 2000)
-.cc.o:		
+.cc.o:
 		$(CC) $(CFLAGS) -c -o $(@) $<
 
 #####################################################
@@ -241,7 +241,7 @@ test-matrix:  matrix_test.cc matrixspecs.o utilities.o utilities.o ioroutines.o 
 
 #####################################################
 ### Cleaners ###
-clean:		cleanswobjs 
+clean:		cleanswobjs
 
 cleaner:	clean cleanprog
 cleanest:	clean cleanprog uninstall
@@ -252,7 +252,7 @@ cleanprog:
 cleanswobjs:
 		@rm -f $(SWOBJS) matrixbk_test.o orbitbk.o slcimage.o triangle.o
 		@echo "* Removed object files."
-uninstall:	
+uninstall:
 		@rm -f $(INSTALLDIR)/$(EXECUTABLE)
 		@echo "* Removed executables in install dir: $(INSTALLDIR)."
 

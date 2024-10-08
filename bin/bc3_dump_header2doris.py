@@ -122,6 +122,7 @@ class BC3:
             # product info
             "Radar_wavelength (m)": "generalAnnotation//productInformation//radarFrequency",
             "First_pixel_azimuth_time (UTC)": "imageAnnotation//imageInformation//productFirstLineUtcTime",
+            "Last_pixel_azimuth_time (UTC)": "imageAnnotation//imageInformation//productLastLineUtcTime",
             "Pulse_Repetition_Frequency (computed, Hz)": "generalAnnotation//downlinkInformationList//prf",
             "Total_azimuth_band_width (Hz)": "imageAnnotation//processingInformation//swathProcParamsList//swathProcParams//azimuthProcessing//totalBandwidth",
             "Weighting_azimuth": None,
@@ -216,6 +217,8 @@ class BC3:
             float(container["Total_range_band_width (MHz)"]) / 1e6
         )
 
+        container["Radar_wavelength (m)"] = SPEED_OF_LIGHT / float(container["Radar_wavelength (m)"])
+
         # unpack doppler coefficients
         (
             container["Xtrack_f_DC_constant (Hz, early edge)"],
@@ -237,15 +240,19 @@ class BC3:
         # update the time format
         cur_time = datetime.strptime(container["First_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
         if container["Direction"] == "ASCENDING":
+            cur_time = datetime.strptime(container["Last_pixel_azimuth_time (UTC)"], "%Y-%m-%dT%H:%M:%S.%f")
             cur_time = reverse_time(cur_time)  # reverse time to "fake" right looking
         container["First_pixel_azimuth_time (UTC)"] = (
             datetime.strftime(cur_time, "%d-%b-%Y %H:%M:%S.%f")
         )
 
-
         # manually update
         container["SAR_PROCESSOR"] = "HL"
         container["Logical volume generating facility"] = "HL"
+
+        container["Product type specifier"] = "BC3"
+        container["Sensor platform mission identifer"] = "BC3"
+
         self.meta.update(container)
 
         return self
@@ -314,22 +321,49 @@ class BC3:
         print("NUMBER_OF_DATAPOINTS: 			{}".format(self.meta["Orbit_n_pts"]))  # nopep8
         print("")
 
-        for i in range(0, self.meta["Orbit_n_pts"]):
+        if self.meta["Direction"] == "ASCENDING":  # fake right looking
+            for i in reversed(range(0, self.meta["Orbit_n_pts"])):
 
-            x, y, z = [
-                e
-                for e in (
-                    self.meta["Orbit X"][i],
-                    self.meta["Orbit Y"][i],
-                    self.meta["Orbit Z"][i],
+                x, y, z = [
+                    e
+                    for e in (
+                        self.meta["Orbit X"][i],
+                        self.meta["Orbit Y"][i],
+                        self.meta["Orbit Z"][i],
+                    )
+                ]  # format in a nicer way
+                cur_orb_time = self.meta["Orbit Time"][i]
+                cur_orb_time = reverse_time(datetime.strptime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f"))
+                cur_orb_time = datetime.strftime(cur_orb_time, "%Y-%m-%dT%H:%M:%S.%f")
+                print(
+                    " {:>7} {:>15} {:>15} {:>15}".format(
+                        hms2sec(cur_orb_time, convertFlag="float"),
+                        x,
+                        y,
+                        z
+                    )
                 )
-            ]  # format in a nicer way
+        else:
+            for i in range(0, self.meta["Orbit_n_pts"]):
 
-            print(
-                " {:>7} {:>15} {:>15} {:>15}".format(
-                    hms2sec(self.meta["Orbit Time"][i], convertFlag="float"), x, y, z
+                x, y, z = [
+                    e
+                    for e in (
+                        self.meta["Orbit X"][i],
+                        self.meta["Orbit Y"][i],
+                        self.meta["Orbit Z"][i],
+                    )
+                ]  # format in a nicer way
+
+                cur_orb_time = self.meta["Orbit Time"][i]
+                print(
+                    " {:>7} {:>15} {:>15} {:>15}".format(
+                        hms2sec(cur_orb_time, convertFlag="float"),
+                        x,
+                        y,
+                        z
+                    )
                 )
-            )
 
         print("\n")
         print("**************************************************************")

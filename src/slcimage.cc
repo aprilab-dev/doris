@@ -640,6 +640,11 @@ void slcimage::fillslcimage(const char* file)
           sar_processor = SARPR_CSK;
           DEBUG.print("SAR_PROCESSOR: Cosmo-skymed identified.");
         }
+      else if (!strcmp(word,"HL"))   // CSK verify
+        {
+          sar_processor = SARPR_FC1;
+          DEBUG.print("SAR_PROCESSOR: FC-1 identified.");
+        }
       else if (!strcmp(word, "GAMMA"))
         {
           sar_processor = SARPR_GAM;   // 20100916.BO.Gamma support.

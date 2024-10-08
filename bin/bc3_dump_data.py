@@ -51,8 +51,8 @@ def bc3_to_data(
     with open(fileout, "wb") as fout:
         for ln in range(l0 - 1, lN):
             cdata = np.empty((pN - p0 + 1) * 2, dtype="<i2")
-            cdata[0::2] = w[0, ln, p0 - 1: pN]
-            cdata[1::2] = w[1, ln, p0 - 1: pN]
+            cdata[0::2] = w[0, ln, p0 - 1: pN].real
+            cdata[1::2] = w[0, ln, p0 - 1: pN].imag
             cdata.tofile(fout)
 
     return lN - l0 + 1, pN - p0 + 1
