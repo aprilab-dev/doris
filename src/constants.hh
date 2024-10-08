@@ -285,6 +285,7 @@ const int16     SARPR_TSX       = 15;            // TSX  processor created COSAR
 const int16	SARPR_GAM	= 16;		 // GAMMA processor created SLC [BO]
 const int16     SARPR_RS2       = 17;            // RS2 processor created ...
 const int16     SARPR_CSK       = 18;            // CSK processor created H5
+const int16     SARPR_FC1       = 19;            // TSX  processor created COSAR
 
 // ====== Unique method selectors for interpolation ======
 // ====== For ASAR (only 5 points), spline is not good ======

@@ -51,8 +51,8 @@ def bc3_to_data(
     with open(fileout, "wb") as fout:
         for ln in range(l0 - 1, lN):
             cdata = np.empty((pN - p0 + 1) * 2, dtype="<i2")
-            cdata[0::2] = w[0, ln, p0 - 1: pN]
-            cdata[1::2] = w[1, ln, p0 - 1: pN]
+            cdata[0::2] = w[0, ln, p0 - 1: pN].real
+            cdata[1::2] = w[0, ln, p0 - 1: pN].imag
             cdata.tofile(fout)
 
     return lN - l0 + 1, pN - p0 + 1
@@ -70,7 +70,7 @@ def bc3_to_res(resFile: str, l0: int, lN: int, p0: int, pN: int) -> bool:
 
     outStream.write("\n")
     outStream.write("**************************************************\n")
-    outStream.write("*_Start_crop:			GF3\n")
+    outStream.write("*_Start_crop:			FC1\n")
     outStream.write("**************************************************\n")
     outStream.write("Data_output_file: 	%s\n" % fileout)
     outStream.write("Data_output_format: 			complex_short\n")
