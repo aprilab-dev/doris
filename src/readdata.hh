@@ -96,6 +96,8 @@ void fc1_dump_data(
                    const input_crop &writeslc_arg);
 void bc3_dump_data(
                    const input_crop &writeslc_arg);
+void lt1_dump_data(
+                   const input_crop &writeslc_arg);
 
 void rs2_dump_data(
                    const input_crop &writeslc_arg);
@@ -118,5 +120,6 @@ void  OversampleSLC(
        const slcimage         &imageinfo,
        const input_oversample &oversampleinput,
        const int16            fileid);
+
 
 #endif // READDATA_H

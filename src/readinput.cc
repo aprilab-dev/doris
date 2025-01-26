@@ -111,7 +111,7 @@ void writearg(const Type argument)
  * "inputoptionsfile" (file in variable: logfile).              *
  * Write to logfile (via "scratchreadinput")                    *
  * mandatory input is checked on presence by checksums (cs).    *
- * If there are more methods, process card switches default     *
+ * If there are more methods, process card switches default      *
  *  methodselector (if present) is used later to correct        *
  *  see for example unwrap methodeselector                      *
  * linecounter only used in case of errors                      *
@@ -1494,6 +1494,8 @@ void readinput(
         m_readfilesinput.sensor_id=SLC_ALOS2;
       else if (!strcmp(keyword,"GF3"))               // gf3 [YQ]
         m_readfilesinput.sensor_id=SLC_GF3;
+      else if (!strcmp(keyword,"LT1"))               // LT1 [YQ]
+        m_readfilesinput.sensor_id=SLC_LT1;
       else if (!strcmp(keyword,"TSX"))               // TSX    [PM]
         m_readfilesinput.sensor_id=SLC_TSX;
       else if (!strcmp(keyword,"TERRASARX"))         // TSX
@@ -1628,6 +1630,8 @@ void readinput(
         s_readfilesinput.sensor_id=SLC_FC1;
       else if (!strcmp(keyword,"BC3"))               // BC3: 38 version of FC1 [YQ]
         s_readfilesinput.sensor_id=SLC_BC3;
+      else if (!strcmp(keyword,"LT1"))               // LT1 [YQ]
+        s_readfilesinput.sensor_id=SLC_LT1;
       else if (!strcmp(keyword,"TSX"))               // TSX [PM]
         s_readfilesinput.sensor_id=SLC_TSX;
       else if (!strcmp(keyword,"TERRASARX"))         // TSX
