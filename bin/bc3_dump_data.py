@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
+#!/home/yuxiao/Develop/tydev/doris
 
-import os
-activate_venv_path = os.path.join('/home/yuxiao/.virtualenvs/doris/', 'bin/activate_this.py')
-with open(activate_venv_path) as f:
-    exec(f.read(), {'__file__': activate_venv_path})
-
+# import os
+# activate_venv_path = os.path.join('/home/yuxiao/.virtualenvs/doris/', 'bin/activate_this.py')
+# with open(activate_venv_path) as f:
+#     exec(f.read(), {'__file__': activate_venv_path})
 
 import os
 import sys
