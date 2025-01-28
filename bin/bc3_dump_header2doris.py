@@ -1,4 +1,4 @@
-#!/home/yuxiao/Develop/tydev/doris
+#!/home/yuxiao/.virtualenvs/doris/bin/python3
 
 # import os
 # activate_venv_path = os.path.join('/home/yuxiao/.virtualenvs/doris/', 'bin/activate_this.py')
