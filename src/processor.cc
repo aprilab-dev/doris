@@ -1606,6 +1606,7 @@ int main(
       break;
 
     // ______ LT1 ______
+    case SLC_LT1:
       INFO.reset();// make sure nothing in buffer
       INFO << "lt1_dump_header2doris.py "
      << input_s_readfiles.leaderfile << " "	  //
