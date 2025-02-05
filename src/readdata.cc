@@ -1692,8 +1692,6 @@ else//RSAT method specified
     }
   // --- if this is an inertial system (rsat) we need to convert to earth fixed ---
   // --- Moreover: we want to reduce the number of data points to local arc -------
-  // --- Limit to only 2 points before, 2 after scene, and use polyfit(3) interp. ---
-  // --- Still this seems to have a large error... ---
   WARNING.print("Convert orbit data to earth fixed (please check this).");
   if (!(strcmp(c64rcs,"INERTIAL")))
     INFO.print("Inertial system for orbit: transforming to Earth fixed.");
@@ -1716,8 +1714,8 @@ else//RSAT method specified
   DEBUG.print();
   // --- Create a new state vector matrix ---
   // --- these computation could be checked by using TIEPOINT, the center point -----
-  // --- Limit to only 2 points before/after: 32 minutes ---
-  // --- better yet, interpolate using keppler to 5 points 5 seconds dt over take ---
+  // --- Limit to only 2 points before, 2 after scene, and use polyfit(3) interp. ---
+  // --- Still this seems to have a large error... ---
   STATE_INERTIAL = STATE;// copy the Z values
   for (register int32 i=0;i<numdatapoints;i++)  // number of data points
     {
@@ -1738,6 +1736,8 @@ else//RSAT method specified
     }
   INFO.print("info on fast/slow time is obtained in readdat, not here.");
   WARNING.print("todo: reduce the number of orbital data to arc around area only");
+  // --- Limit the data points to 2 points before/after: 32 minutes ---
+  // --- better yet, interpolate using keppler to 5 points 5 seconds dt over take ---
 }
 
   leaderfile.close();
@@ -5263,4 +5263,330 @@ void  OversampleSLC(
 
   PROGRESS.print("OVERSAMPLESLC: 100%");
   } // END OversampleSLC
+//____RaffaeleNutricato END MODIFICATION SECTION 2
+
+// Copy code from writeslc
+// do some modification
+// Modified by LG for reading ALOS Fine
+// To read complex real4 data
+void palsar_fine_dump_data(
+        const input_gen &generalinput,
+        const input_crop &crop_arg,
+        const int       checklines)
+{
+
+  const int16           sizeb4 = 4,             // some constants for reading
+                        sizei4 = 4,             //   binary fields.
+                        sizei6 = 6,
+                        sizei8 = 8;
+  uint                  lenrec1;                // length of general record1
+  uint                  lenrec2;                // (nominal) length of data records
+  char                  c4[5],                  // correctly 5 for \0
+                        c6[7],                  // correctly 7 for \0
+                        c8[9];                  // correctly 9 for \0
+
+  // ______ Write some info ______
+  TRACE_FUNCTION("palsar_fine_dump_data (LG 28-Dec-2005)")
+  PROGRESS.print("Start cropping slc data.");
+
+  // ______ Open files ______
+  ifstream datfile;
+  openfstream(datfile,crop_arg.filein1);
+  bk_assert(datfile,crop_arg.filein1,__FILE__,__LINE__);
+
+  // ====== Get data such as recordlength ======
+  datfile.seekg(8,ios::beg);
+  datfile.read((char*)&lenrec1,sizeb4);         // length of record1
+  lenrec1 = ntohl(lenrec1);     // bk 6 jul 2000, byteorder x86 machines.
+  DEBUG.print("record 1 of data file.");
+  if (lenrec1 != 720 )  // PALSAR data = 720 + Rec_bytes*lines
+    {
+    WARNING << "palsar_fine_dump_data : length of record 1 = \""
+         <<  lenrec1 << "\"; expected \"720\" for PALSAR FINE SLC (CEOS, full scene).";
+    WARNING.print();
+
+    }
+
+  datfile.seekg(180,ios::beg);
+  datfile.read((char*)&c6,sizei6);              // number of SAR DATA records (lines)
+    c6[6]='\0';
+    const uint numdatarec = atoi(c6);
+  DEBUG << "numdatarec: " << numdatarec;
+  DEBUG.print();
+  //datfile.seekg(186,ios::beg);
+  datfile.read((char*)&c6,sizei6);              // SAR DATA record length
+    c6[6]='\0';
+    const uint lendatarec2 = atoi(c6);
+  DEBUG << "lendatarec2: " << lendatarec2;
+  DEBUG.print();
+  datfile.seekg(232,ios::beg);                  // SAR Related data
+  datfile.read((char*)&c4,4);
+    c4[4]='\0';
+    const uint numchannels = atoi(c4);
+  DEBUG << "numchannels: " << numchannels;
+  DEBUG.print();
+
+  datfile.read((char*)&c8,sizei8);
+    c8[8]='\0';
+    uint numlines = atoi(c8);
+  DEBUG << "numlines: " << numlines;
+  DEBUG.print();
+
+  datfile.read((char*)&c4,sizei4);
+    c4[4]='\0';
+    const uint leftborder = atoi(c4);
+  DEBUG << "leftborder: " << leftborder;
+  DEBUG.print();
+  datfile.read((char*)&c8,sizei8);              // number of pixels
+    c8[8]='\0';
+    uint numpixels = atoi(c8);
+  DEBUG << "numpixels: " << numpixels;
+  DEBUG.print();
+  datfile.read((char*)&c4,sizei4);
+    c4[4]='\0';
+    const uint rightborder = atoi(c4);
+  DEBUG << "rightborder: " << rightborder;
+  DEBUG.print();
+  datfile.read((char*)&c4,sizei4);
+    c4[4]='\0';
+    const uint topborder = atoi(c4);
+  DEBUG << "topborder: " << topborder;
+  DEBUG.print();
+  datfile.read((char*)&c4,sizei4);
+    c4[4]='\0';
+    const uint bottomborder = atoi(c4);
+  DEBUG << "bottomborder: " << bottomborder;
+  DEBUG.print();
+
+  datfile.seekg(280,ios::beg);                  // Record data
+  datfile.read((char*)&c8,sizei8);
+    c8[8]='\0';
+    const uint numbytesdata = atoi(c8);
+  DEBUG << "numbytesdata: " << numbytesdata;
+  DEBUG.print();
+
+
+// ====== Check with volumefile / internal ======
+// It seems that the lines (N+1) get from volume file is wrong,
+  // it seems to be the pixle number in one line
+  if (numlines != checklines)
+    {
+    WARNING << "code 902: data file: "
+         << crop_arg.filein1
+         << " numlin=" << numlines
+         << " vs. volume file: "
+         << crop_arg.filein1
+         << " numlin=" << checklines;
+    WARNING.print();
+    WARNING.print(" +this means data and volume file seem not to correspond.");
+    }
+
+// ______ Check with previous section ______
+  if (numlines != numdatarec)
+    {
+    WARNING << "code 904: Number of lines seems not to be consistent in file: "
+         << crop_arg.filein1 << " : " << numlines << " != " << numdatarec;
+    WARNING.print();
+    WARNING.print(" +this means SLC FORMAT IS DIFFERENT THEN EXPECTED.");
+    }
+  if ((numbytesdata / 8) != numpixels)
+    {
+    WARNING << "code 904: Number of pixels seems to be inconsistent in file: "
+         << crop_arg.filein1 << ": "
+         << numpixels << " != " << (numbytesdata / 8);
+    WARNING.print();
+    WARNING.print(" +this means SLC FORMAT IS DIFFERENT THEN EXPECTED.");
+    }
+
+
+// ====== Start copy input to output (raw) format with buffer======
+// ______ Check and process optional offset parameters______
+// ______ Lcnlow is corner line, lcnhi is other corner, pcnlow, pixel coord. low etc.
+  uint linestart  = 1;                                  // counters for loops
+  uint lineend    = numlines;
+  uint pixelstart = 1;
+  uint pixelend   = numpixels;                          // only for resultfile
+
+  if (crop_arg.dbow.linehi!=0 && crop_arg.dbow.linelo!=0 &&
+      crop_arg.dbow.pixhi!=0 && crop_arg.dbow.pixlo!=0)
+    {
+    window tempdbow(crop_arg.dbow.linelo, crop_arg.dbow.linehi,
+                    crop_arg.dbow.pixlo,  crop_arg.dbow.pixhi);
+    if (crop_arg.dbow.linehi>numlines)
+      {
+      WARNING << "Specified input DBOW linehi > numlines: "
+           << crop_arg.dbow.linehi << " > " << numlines
+           << ". I set linehi = " << numlines;
+      WARNING.print();
+      tempdbow.linehi=numlines;
+      }
+    if (crop_arg.dbow.pixhi>numpixels)
+      {
+      WARNING << "Specified input DBOW pixhi > numpixels: "
+           << crop_arg.dbow.pixhi << " > " << numpixels
+           << ". I set pixhi = " << numpixels;
+      WARNING.print();
+      tempdbow.pixhi=numpixels;
+      }
+// ______ Only hi values are possibly adapted, low is a constant ______
+    numlines   = tempdbow.linehi - crop_arg.dbow.linelo + 1;
+    numpixels  = tempdbow.pixhi  - crop_arg.dbow.pixlo  + 1;
+
+    linestart  = crop_arg.dbow.linelo;
+    lineend    = tempdbow.linehi;
+    pixelstart = crop_arg.dbow.pixlo;
+    pixelend   = tempdbow.pixhi;                        // only for resultfile
+    }
+
+// ______ Note complex<short> not in ANSI c ______
+  //
+      matrix <real4>    LINE(1,2*numpixels);            // size of real4
+
+// ====== Process requested lines ======
+  ofstream datoutfile;
+  openfstream(datoutfile,crop_arg.fileout1,generalinput.overwrit);
+  bk_assert(datoutfile,crop_arg.fileout1,__FILE__,__LINE__);
+
+  // ______ info on data, to avoid X86 problems ______
+  // ______ according to CEOS specs, byte 413 is first complex pixel, etc. ______
+  // 720 + 84124*linenum + 412
+  datfile.seekg(lenrec1 + 412,ios::beg);
+
+  matrix <real4> TMPREAL4(1,2);
+  datfile >> TMPREAL4;          // read in first complex pixel for test
+
+  real8 tmpmag = sqrt(
+    real8(real4(ntohl(TMPREAL4(0,0)))*real4(ntohl(TMPREAL4(0,0)))) +
+    real8(real4(ntohl(TMPREAL4(0,1)))*real4(ntohl(TMPREAL4(0,1)))));
+
+  DEBUG << "First complex element in datafile: ("
+       << real4(ntohl(TMPREAL4(0,0))) << ","
+       << real4(ntohl(TMPREAL4(0,1)))
+       << "); mag = " << tmpmag;
+  DEBUG.print();
+  if (tmpmag > 10000.)
+    {
+    WARNING.print(DEBUG.get_str());
+    WARNING.print("this is a byteorder problem on X86? (use ntohs)");
+    }
+  DEBUG << "TEST: (realpart): " << TMPREAL4(0,0)
+       << ", (imagpart): " << TMPREAL4(0,1);
+  DEBUG.print();
+  DEBUG << "TEST: htons(realpart): " << ntohl(TMPREAL4(0,0))
+       << ", htons(imagpart): " << ntohl(TMPREAL4(0,1));
+  DEBUG.print();
+  DEBUG << "TEST: ntohs(realpart): " << ntohl(TMPREAL4(0,0))
+       << ", ntohs(imagpart): " << ntohl(TMPREAL4(0,1));
+  DEBUG.print();
+  DEBUG << "TEST: short int(ntohs(realpart)): " << real4(ntohl(TMPREAL4(0,0)))
+       << ", (imagpart): " << real4(ntohl(TMPREAL4(0,1)));
+  DEBUG.print();
+
+
+  // ====== perline is faster than perbuffer, less memory etc. BK1998 ======
+
+  datfile.seekg(lenrec1+(linestart-1)*lendatarec2 + 8,ios::beg);
+  datfile.read((char*)&lenrec2,sizeb4);         // length of first record
+  lenrec2 = ntohl(lenrec2);     // bk 6 jul 2000, byteorder x86 machines.
+
+  if (lenrec2 != lendatarec2)
+    {
+    ERROR << "code 904: Length of datarecords seems to be inconsistent in file: "
+         << crop_arg.filein1 << ": "
+         << lenrec2 << " != " << lendatarec2;
+    WARNING.print(ERROR.get_str());
+    ERROR.reset();
+    }
+
+  const int32 TEN        = 10;
+  const int32 TENPERCENT = int32((.5*TEN+numlines)/TEN);        // number of lines
+  int32 percentage       = 0;                                   // initialization
+  const int32 tmpstart   = lenrec1+412-lendatarec2+(pixelstart-1)*8;    // sizeof=8
+  char  pD,*pc;
+  for (register int32 linecnt=linestart; linecnt<=lineend; linecnt++)
+    {
+    if (!((linecnt-linestart)%TENPERCENT))
+      {
+      PROGRESS << "WRITESLC: " << setw(3) << percentage << "%";
+      PROGRESS.print();
+      percentage += TEN;
+      }
+    datfile.seekg(tmpstart+linecnt*lendatarec2,ios::beg);
+    datfile    >> LINE;
+    // ______ LG 28 DEC 2005: swapbytes for X86 (intel) linux cpus ______
+    #ifdef __X86PROCESSOR__
+    for (int ii=0; ii<LINE.pixels(); ++ii)
+        {
+                pc = (char*)&LINE(0,ii);
+                pD = *pc; *pc = *(pc+3); *(pc+3) = pD;
+                pD = *(pc+1);  *(pc+1) = *(pc+2); *(pc+2) = pD;
+    //  LINE(0,ii) = LINE(0,ii)));      // changed from htons 171100 BK
+        }
+    #endif
+    datoutfile << LINE;
+    }
+  datfile.close();                                      // close files
+  datoutfile.close();
+
+
+
+// ====== Write results to scratchfile ======
+  ofstream scratchresfile("scratchres2raw", ios::out | ios::trunc);
+  bk_assert(scratchresfile,"writeslc: scratchres2raw",__FILE__,__LINE__);
+  scratchresfile
+    << "\n\n*******************************************************************\n";
+    //<< "\n*_Start_crop:\t\t\t"
+    //<<  crop_arg.idcrop
+  if (crop_arg.fileid == MASTERID)
+    scratchresfile <<  "*_Start_" << processcontrol[pr_m_crop];
+  if (crop_arg.fileid == SLAVEID)
+    scratchresfile <<  "*_Start_" << processcontrol[pr_s_crop];
+  scratchresfile
+    << "\t\t\t" <<  crop_arg.idcrop
+    << "\n*******************************************************************"
+    << "\nData_output_file: \t\t\t\t"
+    <<  crop_arg.fileout1
+    << "\nData_output_format: \t\t\t\t"
+    << "complex_real4"
+
+// ______ updateslcimage greps these ______
+    << "\nFirst_line (w.r.t. original_image): \t\t"
+    <<  linestart
+    << "\nLast_line (w.r.t. original_image): \t\t"
+    <<  lineend
+    << "\nFirst_pixel (w.r.t. original_image): \t\t"
+    <<  pixelstart
+    << "\nLast_pixel (w.r.t. original_image): \t\t"
+    <<  pixelend
+    << "\nNumber of lines (non-multilooked): \t\t" <<  lineend-linestart+1
+    << "\nNumber of pixels (non-multilooked): \t\t" <<  pixelend-pixelstart+1
+    << "\n*******************************************************************";
+  if (crop_arg.fileid == MASTERID)
+    scratchresfile <<  "\n* End_" << processcontrol[pr_m_crop] << "_NORMAL";
+  if (crop_arg.fileid == SLAVEID)
+    scratchresfile <<  "\n* End_" << processcontrol[pr_s_crop] << "_NORMAL";
+  scratchresfile
+    << "\n*******************************************************************"
+    <<  endl;
+  scratchresfile.close();
+
+// ______ Tidy up do checks here ______
+  if (numchannels != 1)                         // ??
+    {
+    WARNING << "code 904: Number of channels in file: "
+         << crop_arg.filein1 << " = "
+         << numchannels << " != 1 ";
+    WARNING.print();
+    WARNING.print("this means SLC FORMAT IS DIFFERENT THEN EXPECTED.");
+    }
+  if (bottomborder != topborder != leftborder != rightborder != 0)
+    {
+    WARNING << "code 904: Not implemented: offset border: left,right,bottom,top: "
+         << leftborder << "," << rightborder << "," << bottomborder << ","
+         << topborder << " in file: " << crop_arg.filein1;
+    WARNING.print();
+    WARNING.print("this means SLC FORMAT IS DIFFERENT THEN EXPECTED.");
+    }
+  PROGRESS.print("WRITESLC: 100%");
+} // end palsar_fine_dump_data
 

@@ -111,7 +111,7 @@ void writearg(const Type argument)
  * "inputoptionsfile" (file in variable: logfile).              *
  * Write to logfile (via "scratchreadinput")                    *
  * mandatory input is checked on presence by checksums (cs).    *
- * If there are more methods, process card switches default      *
+ * If there are more methods, process card switches default     *
  *  methodselector (if present) is used later to correct        *
  *  see for example unwrap methodeselector                      *
  * linecounter only used in case of errors                      *
