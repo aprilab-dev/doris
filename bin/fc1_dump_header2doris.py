@@ -188,7 +188,7 @@ class FC1:
             + str(container["Scene_centre_longitude"])
         )
         container["Datafile"] = os.path.basename(
-            locate("spacety_SLC_SM*.h5", os.path.dirname(self.meta["path"]))
+            locate(("spacety_SLC_SM*.h5", "iceye_SM_SLC_*.h5"), os.path.dirname(self.meta["path"]))
         )
 
         # correct two way slant range time
