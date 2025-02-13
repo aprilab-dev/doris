@@ -16,16 +16,16 @@ from datetime import datetime, timedelta
 SPEED_OF_LIGHT = 299792458
 
 
-def locate(pattern: str, root=os.curdir) -> str:
-    # region docstring
-    """Locate the **first** file matching supplied filename pattern
+def locate(pattern, root=os.curdir) -> str:
+    """Locate the **first** file matching supplied filename pattern(s)
     in and below supplied root directory.
 
     Parameters
     ----------
-    pattern : str
-        The pattern that you're looking for. The pattern follows the same rule
-        as in linux system, as "*" is allowed.
+    pattern : str or tuple
+        The pattern(s) that you're looking for. The pattern follows the same rule
+        as in linux system, as "*" is allowed. If a tuple is provided, the function
+        will search for files matching any of the patterns in the tuple.
     root : str, optional
         the root directory for searching the pattern, by default os.curdir.
 
@@ -39,14 +39,22 @@ def locate(pattern: str, root=os.curdir) -> str:
     You can use either "return" or "yield", but be aware of the diference
     between the two.
     """
-    # endregion
+    # 如果 pattern 是字符串，转换为元组以便统一处理
+    if isinstance(pattern, str):
+        patterns = (pattern,)
+    else:
+        patterns = pattern
 
-    # TODO: consider using os.getcwd()?
-    # see https://stackmirror.com/questions/14512087
+    # 遍历目录
     for path, _, files in os.walk(os.path.abspath(root), followlinks=True):
-        for filename in fnmatch.filter(files, pattern):
-            return os.path.join(path, filename)
-    raise FileNotFoundError
+        for filename in files:
+            # 检查文件名是否匹配任何一个 pattern
+            for pat in patterns:
+                if fnmatch.fnmatch(filename, pat):
+                    return os.path.join(path, filename)
+
+    # 如果没有找到匹配的文件，抛出异常
+    raise FileNotFoundError(f"No file found matching any of the patterns: {patterns}")
 
 
 def hms2sec(hmsString, convertFlag="int"):
@@ -90,7 +98,7 @@ class FC1:
         directory : str
             [description]
         """
-        pattern = "spacety_SLC_SM*.h5"
+        pattern = ("spacety_SLC_SM*.h5", "iceye_SM_SLC_*.h5")
         self.meta["path"] = locate(pattern, directory)
 
         return self
