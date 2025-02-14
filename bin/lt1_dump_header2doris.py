@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 
 
 SPEED_OF_LIGHT = 299792458
+TIME_OFFSET = 0  # time offset between UTC and external orbit file
 
 
 def locate(pattern: str, root=os.curdir) -> str:
@@ -244,7 +245,7 @@ class LT1:
         start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
         end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
         
-        beijing_offset = 8  # UTC+8
+        beijing_offset = TIME_OFFSET # UTC+8
         start_time_beijing = start_time_utc + timedelta(hours=beijing_offset) 
         end_time_beijing = end_time_utc + timedelta(hours=beijing_offset)
 
@@ -294,8 +295,8 @@ class LT1:
         start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
         end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
         
-        start_time_buffer = start_time_utc - timedelta(seconds=60)
-        end_time_buffer = end_time_utc + timedelta(seconds=60)
+        start_time_buffer = start_time_utc - timedelta(seconds=154)
+        end_time_buffer = end_time_utc + timedelta(seconds=154)
         
         print(f"INFO    : Reading orbits from {start_time_buffer} to {end_time_buffer}")
 
@@ -325,7 +326,7 @@ class LT1:
                 # Check if within time window
                 if start_time_buffer <= current_time <= end_time_buffer:
                     # Convert from Beijing time (UTC+8) to UTC by subtracting 8 hours
-                    utc_time = current_time - timedelta(hours=8)
+                    utc_time = current_time - timedelta(hours=TIME_OFFSET)
                     # Format time string in the required format
                     time_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
                     
@@ -347,6 +348,28 @@ class LT1:
         print(f"INFO    : Read {self.meta['Orbit_n_pts']} orbit points")
         return self
 
+    def update_external_orbit(self):
+        
+        # Check for external orbit file
+        f_orbit = self._locate_external_orbit()
+        if f_orbit is None:
+            return self
+        
+        # Save internal orbit data with modified keys
+        self.meta["Orbit Time(internal)"] = self.meta.pop("Orbit Time")
+        self.meta["Orbit X(internal)"] = self.meta.pop("Orbit X") 
+        self.meta["Orbit Y(internal)"] = self.meta.pop("Orbit Y")
+        self.meta["Orbit Z(internal)"] = self.meta.pop("Orbit Z")
+        
+        # Reinitialize orbit containers for external data
+        self.meta["Orbit Time"] = []
+        self.meta["Orbit X"] = []
+        self.meta["Orbit Y"] = []
+        self.meta["Orbit Z"] = []
+        
+        self._read_external_orbit(f_orbit)
+        return self
+
     @staticmethod
     def usage() -> None:
         """Print usage information"""
@@ -365,7 +388,4 @@ if __name__ == "__main__":
     meta_file = sys.argv[1]
     lt1 = LT1()
     lt1.meta["path"] = meta_file
-    lt1.read_meta().export2res()
-
-    f_orbit = lt1._locate_external_orbit()
-    lt1._read_external_orbit(f_orbit)
+    lt1.read_meta().update_external_orbit().export2res()
