@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import glob
 import os
 activate_venv_path = os.path.join('/home/yuxiao/.virtualenvs/doris/', 'bin/activate_this.py')
 with open(activate_venv_path) as f:
@@ -10,7 +11,7 @@ import sys
 import fnmatch
 from typing import Any, Dict
 from xml.etree import ElementTree
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 SPEED_OF_LIGHT = 299792458
@@ -174,6 +175,12 @@ class LT1:
                 "%Y-%m-%dT%H:%M:%S.%f"
             ).strftime("%d-%b-%Y %H:%M:%S.%f")
         )
+        container["Last_pixel_azimuth_time (UTC)"] = (
+            datetime.strptime(
+                container["Last_pixel_azimuth_time (UTC)"],
+                "%Y-%m-%dT%H:%M:%S.%f"
+            ).strftime("%d-%b-%Y %H:%M:%S.%f")
+        )
 
         self.meta.update(container)
         return self
@@ -230,6 +237,40 @@ class LT1:
         print("* End_leader_datapoints:_NORMAL")
         print("**************************************************************")
 
+    def _locate_external_orbit(self):
+        """Locate external orbit file"""
+        # Get start/end time from meta and convert to Beijing time (UTC+8)
+
+        start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        
+        beijing_offset = 8  # UTC+8
+        start_time_beijing = start_time_utc + timedelta(hours=beijing_offset) 
+        end_time_beijing = end_time_utc + timedelta(hours=beijing_offset)
+
+        # Format times for orbit file search
+        start_date_str = start_time_beijing.strftime("%Y%m%d")
+        end_date_str = end_time_beijing.strftime("%Y%m%d")
+        
+        print(f"INFO    : Looking for orbit files between {start_date_str} and {end_date_str} (Beijing Time)...")
+
+        # Get product type (A or B) from meta
+        product_type = self.meta["Product type specifier"][-1]  # Get last character (A or B)
+        
+        # Check for orbit file in ../../orbits directory
+        orbit_dir = os.path.join(os.path.dirname(self.meta["path"]), "../../orbits")
+        orbit_pattern = f"LT1{product_type}_GpsData_*_{start_date_str}.txt"
+        orbit_path = os.path.join(orbit_dir, orbit_pattern)
+        
+        # Use glob to find matching files
+        matching_files = glob.glob(orbit_path)
+        
+        if not matching_files:
+            print(f"ERROR   : No orbit files found matching pattern {orbit_pattern} in {orbit_dir}")
+            return matching_files
+            
+        print(f"INFO    : Found orbit file(s): {', '.join(matching_files)}")
+
     @staticmethod
     def usage() -> None:
         """Print usage information"""
@@ -249,3 +290,5 @@ if __name__ == "__main__":
     lt1 = LT1()
     lt1.meta["path"] = meta_file
     lt1.read_meta().export2res()
+
+    lt1._locate_external_orbit()
