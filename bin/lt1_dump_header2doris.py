@@ -267,9 +267,85 @@ class LT1:
         
         if not matching_files:
             print(f"ERROR   : No orbit files found matching pattern {orbit_pattern} in {orbit_dir}")
-            return matching_files
+            return None
             
         print(f"INFO    : Found orbit file(s): {', '.join(matching_files)}")
+        return matching_files[0]
+    
+    def _read_external_orbit(self, orbit_path: str):
+        """Read external orbit data
+        
+        Args:
+            orbit_path: Path to the orbit file
+            
+        This function reads orbit data from the specified file, filtering for data points
+        between start_time_utc-60s and end_time_utc+60s. Only FIXED coordinates are used.
+        """
+        
+        # Initialize container for orbit data
+        container = {
+            "Orbit Time": [],
+            "Orbit X": [],
+            "Orbit Y": [],
+            "Orbit Z": [],
+        }
+        
+        # Get start and end times with buffer
+        start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        
+        start_time_buffer = start_time_utc - timedelta(seconds=60)
+        end_time_buffer = end_time_utc + timedelta(seconds=60)
+        
+        print(f"INFO    : Reading orbits from {start_time_buffer} to {end_time_buffer}")
+
+        with open(orbit_path, 'r') as file:
+            # Skip header lines (first 5 lines)
+            for _ in range(5):
+                next(file)
+                
+            # Read and process each data line
+            for line in file:
+                if not line.strip() or line.startswith('#'):
+                    continue
+                    
+                parts = line.split()
+                
+                # Parse time components
+                year = int(parts[0])
+                month = int(parts[1])
+                day = int(parts[2])
+                hour = int(parts[3])
+                minute = int(parts[4])
+                second = float(parts[5])
+                
+                # Create datetime object for comparison
+                current_time = datetime(year, month, day, hour, minute) + timedelta(seconds=second)
+                
+                # Check if within time window
+                if start_time_buffer <= current_time <= end_time_buffer:
+                    # Convert from Beijing time (UTC+8) to UTC by subtracting 8 hours
+                    utc_time = current_time - timedelta(hours=8)
+                    # Format time string in the required format
+                    time_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
+                    
+                    # Extract FIXED coordinates
+                    x = parts[6]  # FIXED-PX
+                    y = parts[7]  # FIXED-PY
+                    z = parts[8]  # FIXED-PZ
+                    
+                    # Store in container
+                    container["Orbit Time"].append(time_str)
+                    container["Orbit X"].append(x)
+                    container["Orbit Y"].append(y)
+                    container["Orbit Z"].append(z)
+        
+        # Update the meta dictionary with the new orbit data
+        self.meta.update(container)
+        self.meta["Orbit_n_pts"] = len(container["Orbit Time"])
+
+        print(f"INFO    : Read {self.meta['Orbit_n_pts']} orbit points")
+        return self
 
     @staticmethod
     def usage() -> None:
@@ -291,4 +367,5 @@ if __name__ == "__main__":
     lt1.meta["path"] = meta_file
     lt1.read_meta().export2res()
 
-    lt1._locate_external_orbit()
+    f_orbit = lt1._locate_external_orbit()
+    lt1._read_external_orbit(f_orbit)
