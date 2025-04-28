@@ -4,10 +4,10 @@
 # 1) Process the RAW data to SLC with GAMMA. Provide *.slc.par file.
 # 2) Convert dumped header of envisat to a doris resultfile
 #    section "readfiles".
-#    this includes the orbit in this section.  
+#    this includes the orbit in this section.
 # This script is based on the envisat_dumpheader2doris.csh by
 # Bert Kampes 16-JUN-2003
-# Modified for gamma by Batuhan Osmanoglu. 
+# Modified for gamma by Batuhan Osmanoglu.
 ###################################################################
 
 set PRG    = `basename "$0"`
@@ -20,7 +20,7 @@ set AUT    = "Batuhan Osmanoglu 2009, Bert Kampes, (c)2003"
 if ( $#argv != 3 ) then
 cat << __EOFHD
   USAGE:$PRG processParameterFile sensorParameterFile slcFile
-              where 
+              where
               processParameterFile is the gamma SLC processing  par file (pXXX.slc.par, or XXX.pslcpar)
               sensorParameterFile is the gamma sensor par file (ERS1_ESA.par, or System.par)
               slcfile is the complex SAR image file in 2 bytes integer format (CI2).
@@ -70,13 +70,13 @@ set dummy           = "dummy"
 set product         = `$AWK '/^title/{print $2}' $PARFILE`
 set checkNumLines   = `$AWK '/^azimuth_pixels/{print $2}' $PARFILE`
 #Product Type (satellite info is missing in gamma files.)
-set productType     = `$AWK '/^sensor_name/{print $2}' $SYSFILE`
+set productType     = `$AWK '/^sensor/{print $2}' $SYSFILE`
 set sarProcessor    = "GAMMA"
-set frequency	    = `$AWK '/^SAR_center_frequency/{printf "%.6f", $2}' $SYSFILE`
+set frequency	    = `$AWK '/^radar_frequency/{printf "%.6f", $2}' $SYSFILE`
 set midLat	    = `$AWK '/^scene_center_latitude/{print $2}' $PARFILE`
 set midLon	    = `$AWK '/^scene_center_longitude/{print $2}' $PARFILE`
 set pass	    = `$AWK '/^map_coordinate_1:/{lat1=$2};/^map_coordinate_3:/{if ($2>lat1) print "ASCENDING"; else print "DESCENDING"}' $PARFILE` #check first and last latitude.
-set wavelength	    = `$AWK '/^SAR_center_frequency/{printf "%.6f", 2.997e+8/$2}' $SYSFILE`
+set wavelength	    = `$AWK '/^radar_frequency/{printf "%.6f", 2.997e+8/$2}' $SYSFILE`
 set firstLineTime   = `$AWK '/^raw_data_start_time/{printf "%02d:%02d:%2.6f", $2, $3, $4}' $PARFILE`
 set firstLineTimeSec = `hhmmss2sec.py $firstLineTime`
 # firstLineTimeSec needs to get corrected for the offset.
@@ -92,11 +92,11 @@ set FDC0	    = `$AWK '/^doppler_polynomial/{printf "%.6f", $2}' $PARFILE`
 set FDC1	    = `$AWK '/^doppler_polynomial/{printf "%.6f", $3}' $PARFILE`
 set FDC2	    = `$AWK '/^doppler_polynomial/{printf "%.6f", $4}' $PARFILE`
 # Two Way TravelTime in ms (hence *1e+3)
-set TWT		    = `$AWK '/^echo_time_delay/{printf "%.6f", $2*1e+3}' $PARFILE` 
+set TWT		    = `$AWK '/^echo_time_delay/{printf "%.6f", $2*1e+3}' $PARFILE`
 # correct TWT for range extension (hence *1e+3)
 #correct for chirp extension (near range extension time changes first pixel time.)
 set near_range_extension = `$AWK '/^near_range_extension/{print $2}' $PARFILE`
-set RSR		    = `$AWK '/^ADC_sampling_frequency/{printf "%.6f", $2/1e+6}' $SYSFILE`
+set RSR		    = `$AWK '/^adc_sampling_rate/{printf "%.6f", $2/1e+6}' $SYSFILE`
 set TWT 	    = `echo $TWT ${near_range_extension} ${RSR}| $AWK '{printf "%.8f", $1-$2/($3*1e+3)};'`
 set RBW		    = `$AWK '/^chirp_bandwidth/{printf "%.6f", $2/1e+6}' $SYSFILE`
 set NUMSTATEVECTORS = `$AWK '/^number_of_state_vectors/{print $2}' $PARFILE`
@@ -109,7 +109,7 @@ else if ( "$productType" =~ "ERS*" ) then
 	set productType = "ERS"
 else if ( "$productType" == "PALSAR" ) then
 	set productType = "ALOS"
-endif	
+endif
 
 ### create a result section to a tmp file.
 cat << __EOFHD
