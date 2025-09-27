@@ -16,11 +16,11 @@ from datetime import datetime, timedelta
 
 SPEED_OF_LIGHT = 299792458
 TIME_OFFSET = 8  # time offset between UTC and external orbit file
-
+EXTERNAL_ORBIT = False  # by default, there's no external orbit file
 
 def locate(pattern: str, root=os.curdir) -> str:
     """Locate the first file matching pattern in directory tree"""
-    for path, dirs, files in os.walk(os.path.abspath(root), followlinks=True):
+    for path, _, files in os.walk(os.path.abspath(root), followlinks=True):
         for filename in fnmatch.filter(files, pattern):
             return os.path.join(path, filename)
     raise FileNotFoundError
@@ -393,4 +393,7 @@ if __name__ == "__main__":
     meta_file = sys.argv[1]
     lt1 = LT1()
     lt1.meta["path"] = meta_file
-    lt1.read_meta().update_external_orbit().export2res()
+    if EXTERNAL_ORBIT is True:
+        lt1.read_meta().update_external_orbit().export2res()
+    else:
+        lt1.read_meta().export2res()
