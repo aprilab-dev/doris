@@ -164,7 +164,8 @@ extern bk_messages ERROR;
 // #define SWVERSION "version  4.11.1 (18-06-2020)" "\n\t\t     build \t" __TIMESTAMP__ // Added ALOS2 support.
 // #define SWVERSION "version  4.12 (05-05-2021)" "\n\t\t     build \t" __TIMESTAMP__ // Added GF3 support.
 // #define SWVERSION "version  4.13 (02-01-2024)" "\n\t\t     build \t" __TIMESTAMP__ // Added FC1 support.
-#define SWVERSION "version  4.14 (22-02-2024)" "\n\t\t     build \t" __TIMESTAMP__ // Added BC3 support.
+// #define SWVERSION "version  4.14 (22-02-2024)" "\n\t\t     build \t" __TIMESTAMP__ // Added BC3 support.
+#define SWVERSION "version  4.15 (27-01-2025)" "\n\t\t     build \t" __TIMESTAMP__ // Added LT1 support.
 
 // ====== Typedefs for portability ======
 typedef short int           int16;    // 16 bits --> 2 bytes.  It has a range of -32768 to 32767. [ from -2^15 to (2^15 - 1) ]  [MA]
@@ -266,6 +267,7 @@ const int16     SLC_ALOS2    = 7;				// ALOS2
 const int16     SLC_GF3      = 8;				// GF3
 const int16     SLC_FC1      = 51;				// FC1
 const int16     SLC_BC3      = 52;				// BC3
+const int16     SLC_LT1      = 53;				// LT1
 const int16     SLC_TSX      = 6;               // TSX stripmap
 // for Radarsat-2: [MA]
 const int16     SLC_RS2      = 70;              // RS2 [Default for Radarsat-2 SLC]  [MA]
@@ -285,7 +287,6 @@ const int16     SARPR_TSX       = 15;            // TSX  processor created COSAR
 const int16	SARPR_GAM	= 16;		 // GAMMA processor created SLC [BO]
 const int16     SARPR_RS2       = 17;            // RS2 processor created ...
 const int16     SARPR_CSK       = 18;            // CSK processor created H5
-const int16     SARPR_FC1       = 19;            // TSX  processor created COSAR
 
 // ====== Unique method selectors for interpolation ======
 // ====== For ASAR (only 5 points), spline is not good ======

@@ -640,11 +640,6 @@ void slcimage::fillslcimage(const char* file)
           sar_processor = SARPR_CSK;
           DEBUG.print("SAR_PROCESSOR: Cosmo-skymed identified.");
         }
-      else if (!strcmp(word,"HL"))   // CSK verify
-        {
-          sar_processor = SARPR_FC1;
-          DEBUG.print("SAR_PROCESSOR: FC-1 identified.");
-        }
       else if (!strcmp(word, "GAMMA"))
         {
           sar_processor = SARPR_GAM;   // 20100916.BO.Gamma support.
@@ -778,6 +773,12 @@ void slcimage::fillslcimage(const char* file)
         {
           DEBUG.print("Substring \"GF3\" found in Product type specifier.");
           sensor = SLC_GF3;
+        }
+      pch = strstr(word,"LT1");
+      if (pch != NULL)  // LT1
+        {
+          DEBUG.print("Substring \"LT1\" found in Product type specifier.");
+          sensor = SLC_LT1;
         }
       pch = strstr(word,"FC1");
       if (pch != NULL)  // FC1
