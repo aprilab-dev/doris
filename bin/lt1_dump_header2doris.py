@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import glob
 import os
 activate_venv_path = os.path.join('/home/yuxiao/.virtualenvs/doris/', 'bin/activate_this.py')
 with open(activate_venv_path) as f:
@@ -10,15 +11,16 @@ import sys
 import fnmatch
 from typing import Any, Dict
 from xml.etree import ElementTree
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 SPEED_OF_LIGHT = 299792458
-
+TIME_OFFSET = 8  # time offset between UTC and external orbit file
+EXTERNAL_ORBIT = False  # by default, there's no external orbit file
 
 def locate(pattern: str, root=os.curdir) -> str:
     """Locate the first file matching pattern in directory tree"""
-    for path, dirs, files in os.walk(os.path.abspath(root), followlinks=True):
+    for path, _, files in os.walk(os.path.abspath(root), followlinks=True):
         for filename in fnmatch.filter(files, pattern):
             return os.path.join(path, filename)
     raise FileNotFoundError
@@ -174,6 +176,12 @@ class LT1:
                 "%Y-%m-%dT%H:%M:%S.%f"
             ).strftime("%d-%b-%Y %H:%M:%S.%f")
         )
+        container["Last_pixel_azimuth_time (UTC)"] = (
+            datetime.strptime(
+                container["Last_pixel_azimuth_time (UTC)"],
+                "%Y-%m-%dT%H:%M:%S.%f"
+            ).strftime("%d-%b-%Y %H:%M:%S.%f")
+        )
 
         self.meta.update(container)
         return self
@@ -230,6 +238,143 @@ class LT1:
         print("* End_leader_datapoints:_NORMAL")
         print("**************************************************************")
 
+    def _locate_external_orbit(self):
+        """Locate external orbit file"""
+        # Get start/end time from meta and convert to Beijing time (UTC+8)
+
+        start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+
+        beijing_offset = TIME_OFFSET # UTC+8
+        start_time_beijing = start_time_utc + timedelta(hours=beijing_offset)
+        end_time_beijing = end_time_utc + timedelta(hours=beijing_offset)
+
+        # Format times for orbit file search
+        start_date_str = start_time_beijing.strftime("%Y%m%d")
+        end_date_str = end_time_beijing.strftime("%Y%m%d")
+
+        print(f"INFO    : Looking for orbit files between {start_date_str} and {end_date_str} (Beijing Time)...")
+
+        # Get product type (A or B) from meta
+        product_type = self.meta["Product type specifier"][-1]  # Get last character (A or B)
+
+        # Check for orbit file in ../../orbits directory
+        orbit_dir = os.path.join(os.path.dirname(self.meta["path"]), "../../orbits")
+        orbit_pattern = f"LT1{product_type}_GpsData_*_{start_date_str}.txt"
+        orbit_path = os.path.join(orbit_dir, orbit_pattern)
+
+        # Use glob to find matching files
+        matching_files = glob.glob(orbit_path)
+
+        if not matching_files:
+            print(f"ERROR   : No orbit files found matching pattern {orbit_pattern} in {orbit_dir}")
+            return None
+
+        print(f"INFO    : Found orbit file(s): {', '.join(matching_files)}")
+        return matching_files[0]
+
+    def _read_external_orbit(self, orbit_path: str):
+        """Read external orbit data
+
+        Args:
+            orbit_path: Path to the orbit file
+
+        This function reads orbit data from the specified file, filtering for data points
+        between start_time_utc-60s and end_time_utc+60s. Only FIXED coordinates are used.
+        """
+
+        # Initialize container for orbit data
+        container = {
+            "Orbit Time": [],
+            "Orbit X": [],
+            "Orbit Y": [],
+            "Orbit Z": [],
+        }
+
+        # Get start and end times with buffer
+        start_time_utc = datetime.strptime(self.meta["First_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+        end_time_utc = datetime.strptime(self.meta["Last_pixel_azimuth_time (UTC)"], "%d-%b-%Y %H:%M:%S.%f")
+
+
+        beijing_offset = TIME_OFFSET # UTC+8
+        start_time_beijing = start_time_utc + timedelta(hours=beijing_offset)
+        end_time_beijing = end_time_utc + timedelta(hours=beijing_offset)
+
+        start_time_buffer = start_time_beijing - timedelta(seconds=120)
+        end_time_buffer = end_time_beijing + timedelta(seconds=120)
+
+        print(f"INFO    : Reading orbits from {start_time_buffer} to {end_time_buffer}")
+
+        with open(orbit_path, 'r') as file:
+            # Skip header lines (first 5 lines)
+            for _ in range(5):
+                next(file)
+
+            # Read and process each data line
+            for line in file:
+                if not line.strip() or line.startswith('#'):
+                    continue
+
+                parts = line.split()
+
+                # Parse time components
+                year = int(parts[0])
+                month = int(parts[1])
+                day = int(parts[2])
+                hour = int(parts[3])
+                minute = int(parts[4])
+                second = float(parts[5])
+
+                # Create datetime object for comparison
+                current_time = datetime(year, month, day, hour, minute) + timedelta(seconds=second)
+
+                # Check if within time window
+                if start_time_buffer <= current_time <= end_time_buffer:
+                    # Convert from Beijing time (UTC+8) to UTC by subtracting 8 hours
+                    utc_time = current_time - timedelta(hours=TIME_OFFSET)
+                    # Format time string in the required format
+                    time_str = utc_time.strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+                    # Extract FIXED coordinates
+                    x = parts[6]  # FIXED-PX
+                    y = parts[7]  # FIXED-PY
+                    z = parts[8]  # FIXED-PZ
+
+                    # Store in container
+                    container["Orbit Time"].append(time_str)
+                    container["Orbit X"].append(x)
+                    container["Orbit Y"].append(y)
+                    container["Orbit Z"].append(z)
+
+        # Update the meta dictionary with the new orbit data
+        self.meta.update(container)
+        self.meta["Orbit_n_pts"] = len(container["Orbit Time"])
+
+        print(f"INFO    : Read {self.meta['Orbit_n_pts']} orbit points")
+        return self
+
+    def update_external_orbit(self):
+
+        # Check for external orbit file
+        f_orbit = self._locate_external_orbit()
+        if f_orbit is None:
+            return self
+
+        # Save internal orbit data with modified keys
+        self.meta["Orbit Time(internal)"] = self.meta.pop("Orbit Time")
+        self.meta["Orbit X(internal)"] = self.meta.pop("Orbit X")
+        self.meta["Orbit Y(internal)"] = self.meta.pop("Orbit Y")
+        self.meta["Orbit Z(internal)"] = self.meta.pop("Orbit Z")
+
+        # Reinitialize orbit containers for external data
+        self.meta["Orbit Time"] = []
+        self.meta["Orbit X"] = []
+        self.meta["Orbit Y"] = []
+        self.meta["Orbit Z"] = []
+
+        self._read_external_orbit(f_orbit)
+        return self
+
     @staticmethod
     def usage() -> None:
         """Print usage information"""
@@ -248,4 +393,7 @@ if __name__ == "__main__":
     meta_file = sys.argv[1]
     lt1 = LT1()
     lt1.meta["path"] = meta_file
-    lt1.read_meta().export2res()
+    if EXTERNAL_ORBIT is True:
+        lt1.read_meta().update_external_orbit().export2res()
+    else:
+        lt1.read_meta().export2res()
